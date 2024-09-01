@@ -25,17 +25,21 @@ variable {C : Type} [Category.{0, 0} C] {K : Type} [DivisionRing K] (M : FunctCa
 
 section Submodules
 
+@[ext]
 structure PH.Submodule where
-    (mods : ∀ (x : C), Submodule K (M.obj x))
+    (mods (x : C) : Submodule K (M.obj x))
     /- TODO: add condition that the inclusion of the submodules
     is compatible with the "transition" maps of the functor M,
     i.e if we have f : x ⟶ y then the image of `mods x` by `M f` lies
     in the submodule `mods y`. -/
-    (h_mods : ∀ {x y : C} (f : x ⟶ y), true)
+    (h_mods : ∀ {x y : C} (f : x ⟶ y), (mods x).map (M.map f) ≤ mods y)
 
+
+-- TODO: make this better.
 @[ext]
-lemma PH.Submodule.ext (N₁ N₂ : Submodule M) (h :
-  ∀ x, N₁.mods x = N₂.mods x) : N₁ = N₂ := by sorry
+lemma PH.Submodule.ext' (N₁ N₂ : Submodule M) (h :
+  ∀ x, N₁.mods x = N₂.mods x) : N₁ = N₂ := by
+  aesop
 
 -- Persistence submodules are ordered by pointwise inclusion
 instance : PartialOrder (PH.Submodule M) where
@@ -46,7 +50,7 @@ instance : PartialOrder (PH.Submodule M) where
     exact le_trans (h x) (h' x)
   le_antisymm N₁ N₂ := by
     intro h h'
-    apply PH.Submodule.ext
+    apply PH.Submodule.ext'
     intro x
     exact le_antisymm (h x) (h' x)
 
@@ -55,24 +59,39 @@ and a notion of an infimum, given by `∩`.-/
 instance : Lattice (PH.Submodule M) where
   sup N₁ N₂ := {
     mods := fun x => (N₁.mods x) ⊔ (N₂.mods x)
-    h_mods := sorry
-  }
-  le_sup_left := sorry
-  le_sup_right := sorry
-  sup_le := sorry
+    h_mods := by
+      intro x y f
+      rw [Submodule.map_sup]
+      apply sup_le_sup (N₁.h_mods f) (N₂.h_mods f) }
+  le_sup_left := by
+    intro a b x
+    aesop
+  le_sup_right := by
+    intro a b x
+    aesop
+  sup_le := by
+    intro a b c h h' x
+    aesop
   inf N₁ N₂ := {
     mods := fun x => (N₁.mods x) ⊓ (N₂.mods x)
-    h_mods := sorry
-  }
-  inf_le_left := sorry
-  inf_le_right := sorry
-  le_inf := sorry
+    h_mods := by
+      intro x y f
+      apply le_trans (Submodule.map_inf_le _) (inf_le_inf (N₁.h_mods f) (N₂.h_mods f)) }
+  inf_le_left := by
+    intro a b x
+    aesop
+  inf_le_right := by
+    intro a b x
+    aesop
+  le_inf := by
+    intro a b c h h' x
+    aesop
 
 /- There's a notion of a minimal submodule, namely `0`-/
 instance : OrderBot (PH.Submodule M) where
   bot := {
     mods := fun x => ⊥
-    h_mods := sorry
+    h_mods := by aesop
   }
   bot_le N := fun x => bot_le
 
@@ -80,7 +99,7 @@ instance : OrderBot (PH.Submodule M) where
 instance : OrderTop (PH.Submodule M) where
   top := {
     mods := fun x => ⊤
-    h_mods := sorry
+    h_mods := by aesop
   }
   le_top N := fun x => le_top
 
@@ -89,7 +108,10 @@ instance : SupSet (PH.Submodule M) where
   sSup S := {
     -- The direct sum over arbitrary sets is just the pointwise direct sum
     mods := fun x => sSup {(N.mods x) | (N : PH.Submodule M) (_ : N ∈ S)}
-    h_mods := sorry
+    h_mods := by
+      intro x y f x hx
+      sorry
+
   }
 
 -- There's a notion of infimums over arbitrary sets of submodules
@@ -101,7 +123,13 @@ instance : InfSet (PH.Submodule M) where
   }
 
 -- The sups and infs over possibly infinite sets are compatible with the lattice structure
-instance : CompleteLattice (PH.Submodule M) := sorry
+instance : CompleteLattice (PH.Submodule M) where
+  le_sSup := sorry
+  sSup_le := sorry
+  sInf_le := sorry
+  le_sInf := sorry
+  le_top := sorry
+  bot_le := sorry
 
 end Submodules
 
@@ -137,7 +165,7 @@ inverse limit explicitly but I think this would be really painful and messy...-/
 
 -- Here we write some code to go from chains in directSumDecompositions to diagrams in the category of types
 variable {M} in
-def ToTypeCat (N : PH.Submodule M) : (DirectSumDecomposition N) ⥤ Type where
+def ToTypeCat (N : PH.Submodule M) : (DirectSumDecomposition N) ⥤ Type 1 where
   obj D := Subtype D.S
   -- Define the maps f_{IJ} induced by I ≤ J
   map f := sorry
