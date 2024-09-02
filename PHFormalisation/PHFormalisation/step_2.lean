@@ -202,6 +202,12 @@ def ChainToTypeCat (N : PH.Submodule M) (T : Set (DirectSumDecomposition N)) :
 def ChainToInverseLimit (N : PH.Submodule M) (T : Set (DirectSumDecomposition N)) :
   Type := limit (ChainToTypeCat N T)
 
+
+variable (N : PH.Submodule M) (T : Set (DirectSumDecomposition N)) (L : limit (ChainToTypeCat N T))
+variable (I : Subtype T)
+#check limit.π (ChainToTypeCat N T) I -- this is how we access the morphism L ⟶ I
+
+
 /- Get a direct sum out of a chain (this should be the index set 𝓤 in out doc)-/
 variable {M} in
 def DirectSumDecomposition_of_chain {N : PH.Submodule M} {T : Set (DirectSumDecomposition N)} (hT : IsChain
@@ -212,5 +218,15 @@ lemma every_chain_has_an_upper_bound (N : PH.Submodule M)
   {T : Set (DirectSumDecomposition N)} (hT : IsChain LE.le T) :
   ∀ D ∈ T, D ≤ DirectSumDecomposition_of_chain hT := by
   sorry
+
+/-Every chain has an upper bound, hence there is a maximal direct sum decomposition `D`-/
+lemma zorny_lemma (N : PH.Submodule M) : ∃ (D : DirectSumDecomposition N), IsMax D := by
+  apply zorn_le
+  rintro T hT
+  rw[bddAbove_def]
+  use (DirectSumDecomposition_of_chain hT)
+  exact (every_chain_has_an_upper_bound M N hT)
+
+
 
 end Chains
