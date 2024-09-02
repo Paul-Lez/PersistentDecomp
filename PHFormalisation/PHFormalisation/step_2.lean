@@ -91,17 +91,38 @@ instance : Lattice (PH.Submodule M) where
 instance : OrderBot (PH.Submodule M) where
   bot := {
     mods := fun x => ⊥
-    h_mods := by aesop
-  }
+    h_mods := by aesop }
   bot_le N := fun x => bot_le
 
 /- There's a notion of a maximal submodule, namely `M`-/
 instance : OrderTop (PH.Submodule M) where
   top := {
     mods := fun x => ⊤
-    h_mods := by aesop
-  }
+    h_mods := by aesop }
   le_top N := fun x => le_top
+
+section
+
+variable {R : Type*} {R₁ : Type*} {R₂ : Type*} {R₃ : Type*}
+variable {M : Type*} {M₁ : Type*} {M₂ : Type*} {M₃ : Type*}
+variable [Semiring R] [Semiring R₂] [Semiring R₃]
+variable [AddCommMonoid M] [AddCommMonoid M₂] [AddCommMonoid M₃]
+variable [Module R M] [Module R₂ M₂] [Module R₃ M₃]
+variable {σ₁₂ : R →+* R₂} {σ₂₃ : R₂ →+* R₃} {σ₁₃ : R →+* R₃}
+variable [RingHomCompTriple σ₁₂ σ₂₃ σ₁₃]
+variable (p p' : Submodule R M) (q q' : Submodule R₂ M₂)
+variable {x : M}
+variable [RingHomSurjective σ₁₂] {F : Type*} [FunLike F M M₂] [SemilinearMapClass F σ₁₂ M M₂]
+variable {σ₂₁ : R₂ →+* R} [RingHomInvPair σ₁₂ σ₂₁] [RingHomInvPair σ₂₁ σ₁₂]
+variable {F : Type*} [FunLike F M M₂] [SemilinearMapClass F σ₁₂ M M₂]
+
+lemma Submodule.map_sSup (f : F) (S : Set (Submodule R M)) :
+  (sSup S).map f = sSup (map f '' S) := by sorry
+
+lemma Submodule.map_sInf (f : F) (S : Set (Submodule R M)) :
+  (sInf S).map f ≤ sInf (map f '' S) := by sorry
+
+end
 
 -- There's a notion of supremum over arbitrary sets of submodules
 instance : SupSet (PH.Submodule M) where
@@ -109,18 +130,21 @@ instance : SupSet (PH.Submodule M) where
     -- The direct sum over arbitrary sets is just the pointwise direct sum
     mods := fun x => sSup {(N.mods x) | (N : PH.Submodule M) (_ : N ∈ S)}
     h_mods := by
-      intro x y f x hx
-      sorry
-
-  }
+      intro x y f
+      rw [Submodule.map_sSup]
+      sorry }
 
 -- There's a notion of infimums over arbitrary sets of submodules
 instance : InfSet (PH.Submodule M) where
   sInf S := {
     -- The intersection over arbitrary sets is just the pointwise direct sum
     mods := fun x => sInf {(N.mods x) | (N : PH.Submodule M) (_ : N ∈ S)}
-    h_mods := sorry
-  }
+    h_mods := by
+      intro x y f
+      apply le_trans (Submodule.map_sInf _ _)
+      apply sInf_le
+      -- Here we're using the compatibility condition on submodules
+      sorry }
 
 -- The sups and infs over possibly infinite sets are compatible with the lattice structure
 instance : CompleteLattice (PH.Submodule M) where
@@ -138,17 +162,14 @@ section DirectSumDecomposition
 variable {M} in
 structure DirectSumDecomposition (N : PH.Submodule M) where
   {S : Set (PH.Submodule M)}
-  -- The submodules in the direct sum decomposition are linearly independent.
-  -- There are several ways of stating this, but we should have a think
-  -- about which is the most convenient to work with
-  {h : true}
+  {h : ∀ (x : C), DirectSum.IsInternal (fun p : S => (p.val.mods x : Submodule _ _)) }
   -- `N` is the direct sum of the submodules in `S`
   (h' : N = sSup S)
 
 variable {M : FunctCat C K} in
 def IsRefinement (N : PH.Submodule M) : DirectSumDecomposition N → DirectSumDecomposition N → Prop :=
-  sorry
-  --fun D₁ D₂ => ∃ d : D₂ → Set (D₁.val), ∀ N, N = sSup ((d N))
+  fun D₁ D₂ => ∃ d : D₂.S → Set (PH.Submodule M), (∀ (N : D₂.S), N.val = sSup ((d N))) ∧ (∀ N, d N ⊆ D₁.S)
+
 
 /- The decompositions are ordered by refinement. With the current definition of
 refinement, this might be a bit awkward to prove, so let's leave it sorried out for now.-/
@@ -165,7 +186,7 @@ inverse limit explicitly but I think this would be really painful and messy...-/
 
 -- Here we write some code to go from chains in directSumDecompositions to diagrams in the category of types
 variable {M} in
-def ToTypeCat (N : PH.Submodule M) : (DirectSumDecomposition N) ⥤ Type 1 where
+def ToTypeCat (N : PH.Submodule M) : (DirectSumDecomposition N) ⥤ Type where
   obj D := Subtype D.S
   -- Define the maps f_{IJ} induced by I ≤ J
   map f := sorry
