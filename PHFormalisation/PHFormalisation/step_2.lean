@@ -77,12 +77,8 @@ instance : Lattice (PH.Submodule M) where
     h_mods := by
       intro x y f
       apply le_trans (Submodule.map_inf_le _) (inf_le_inf (N₁.h_mods f) (N₂.h_mods f)) }
-  inf_le_left := by
-    intro a b x
-    aesop
-  inf_le_right := by
-    intro a b x
-    aesop
+  inf_le_left a b x := by aesop
+  inf_le_right a b x := by aesop
   le_inf := by
     intro a b c h h' x
     aesop
@@ -162,6 +158,8 @@ section DirectSumDecomposition
 variable {M} in
 structure DirectSumDecomposition (N : PH.Submodule M) where
   {S : Set (PH.Submodule M)}
+  -- This needs to change a bit since we're saying that we're summing to M and then to N.
+  -- But let's take care of that later on.
   {h : ∀ (x : C), DirectSum.IsInternal (fun p : S => (p.val.mods x : Submodule _ _)) }
   -- `N` is the direct sum of the submodules in `S`
   (h' : N = sSup S)
@@ -169,7 +167,6 @@ structure DirectSumDecomposition (N : PH.Submodule M) where
 variable {M : FunctCat C K} in
 def IsRefinement (N : PH.Submodule M) : DirectSumDecomposition N → DirectSumDecomposition N → Prop :=
   fun D₁ D₂ => ∃ d : D₂.S → Set (PH.Submodule M), (∀ (N : D₂.S), N.val = sSup ((d N))) ∧ (∀ N, d N ⊆ D₁.S)
-
 
 /- The decompositions are ordered by refinement. With the current definition of
 refinement, this might be a bit awkward to prove, so let's leave it sorried out for now.-/
@@ -227,6 +224,23 @@ lemma zorny_lemma (N : PH.Submodule M) : ∃ (D : DirectSumDecomposition N), IsM
   use (DirectSumDecomposition_of_chain hT)
   exact (every_chain_has_an_upper_bound M N hT)
 
-
-
 end Chains
+
+section Indecomposable
+
+/--`M` is indecomposable iff its only non-trivial submodule is the zero submodule `⊥`-/
+def Indecomposable : Prop := IsAtom (⊤ : PH.Submodule M)
+
+-- Maximal direct sum decompositions consist of indecomposable submodules.
+lemma Indecomposable_of_mem_Max_Direct_sum_decomposition
+  (D : DirectSumDecomposition ⊤) (N : PH.Submodule M) (hN : N ∈ D.S) :
+  IsAtom N := by sorry
+
+end Indecomposable
+
+section
+
+/- TODO in this section: construct the persistence module associated to a submodule,
+and show that submodules that are atoms yield indecomposable persistence modules-/
+
+end
