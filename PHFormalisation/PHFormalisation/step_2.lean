@@ -157,10 +157,10 @@ section DirectSumDecomposition
 
 variable {M} in
 structure DirectSumDecomposition (N : PH.Submodule M) where
-  {S : Set (PH.Submodule M)}
+  (S : Set (PH.Submodule M))
   -- This needs to change a bit since we're saying that we're summing to M and then to N.
   -- But let's take care of that later on.
-  {h : ∀ (x : C), DirectSum.IsInternal (fun p : S => (p.val.mods x : Submodule _ _)) }
+  (h : ∀ (x : C), DirectSum.IsInternal (fun p : S => (p.val.mods x : Submodule _ _)) )
   -- `N` is the direct sum of the submodules in `S`
   (h' : N = sSup S)
 
@@ -170,8 +170,15 @@ def IsRefinement (N : PH.Submodule M) : DirectSumDecomposition N → DirectSumDe
 
 /- The decompositions are ordered by refinement. With the current definition of
 refinement, this might be a bit awkward to prove, so let's leave it sorried out for now.-/
-instance (N : PH.Submodule M) : Preorder (DirectSumDecomposition N) :=
-  sorry
+instance (N : PH.Submodule M) : Preorder (DirectSumDecomposition N) where
+  le D₁ D₂ := IsRefinement N D₁ D₂
+  le_refl D := by
+    simp
+    rw[IsRefinement]
+    sorry
+  le_trans N₁ N₂ N₃ := by
+    sorry
+
 
 end DirectSumDecomposition
 
@@ -228,13 +235,34 @@ end Chains
 
 section Indecomposable
 
+def TrivialDecomp (N : PH.Submodule M) : DirectSumDecomposition N where
+  S := {N}
+  h := by
+    sorry
+  h' := by
+    simp
+
+
 /--`M` is indecomposable iff its only non-trivial submodule is the zero submodule `⊥`-/
-def Indecomposable : Prop := IsAtom (⊤ : PH.Submodule M)
+def Indecomposable : Prop := IsMax (TrivialDecomp M ⊤)
 
 -- Maximal direct sum decompositions consist of indecomposable submodules.
 lemma Indecomposable_of_mem_Max_Direct_sum_decomposition
-  (D : DirectSumDecomposition ⊤) (N : PH.Submodule M) (hN : N ∈ D.S) :
-  IsAtom N := by sorry
+  (D : DirectSumDecomposition ⊤) (N : PH.Submodule M) (hN : N ∈ D.S) (hmax : IsMax D) :
+  IsMax (TrivialDecomp M N) := by
+  by_contra hNotMax
+  rw[IsMax] at hNotMax
+  push_neg at hNotMax
+  rcases hNotMax with ⟨P, hle, hneq⟩
+  let S : Set (PH.Submodule M) := (D.S \ {N}) ⊔ P.S
+  have h : ∀ (x : C), DirectSum.IsInternal (fun p : S => (p.val.mods x : Submodule _ _)) := by
+    sorry
+  have h' : ⊤ = sSup S := by
+    sorry
+  let Cex : DirectSumDecomposition (⊤ : PH.Submodule M) := ⟨S, h, h'⟩
+  have contra : ¬ IsMax D := by
+    sorry
+  exact contra hmax
 
 end Indecomposable
 
