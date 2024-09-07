@@ -9,6 +9,7 @@ import Mathlib.LinearAlgebra.Projection
 import Mathlib.Data.SetLike.Fintype
 import Mathlib.Algebra.Module.Submodule.Ker
 import Mathlib.CategoryTheory.Preadditive.Injective
+import Mathlib.Order.SetNotation
 import Mathlib.CategoryTheory.Limits.Shapes.ZeroObjects
 import PHFormalisation.PHFormalisation.thm1_1with_decomp_struct
 
@@ -164,6 +165,8 @@ structure DirectSumDecomposition (N : PH.Submodule M) where
   -- `N` is the direct sum of the submodules in `S`
   (h' : N = sSup S)
 
+
+--careful: this means that D₁ refines D₂
 variable {M : FunctCat C K} in
 def IsRefinement (N : PH.Submodule M) : DirectSumDecomposition N → DirectSumDecomposition N → Prop :=
   fun D₁ D₂ => ∃ d : D₂.S → Set (PH.Submodule M), (∀ (N : D₂.S), N.val = sSup ((d N))) ∧ (∀ N, d N ⊆ D₁.S)
@@ -175,9 +178,37 @@ instance (N : PH.Submodule M) : Preorder (DirectSumDecomposition N) where
   le_refl D := by
     simp
     rw[IsRefinement]
-    sorry
-  le_trans N₁ N₂ N₃ := by
-    sorry
+    let d : (D.S → Set (PH.Submodule M)) := fun (I : D.S) ↦ {I.val}
+    use d
+    constructor
+    · intro I
+      aesop
+    · intro I
+      aesop
+  le_trans I₁ I₂ I₃ := by
+    intro h12 h23
+    simp at *
+    rw [IsRefinement] at *
+    rcases h12 with ⟨d₁, h₁eq, h₁sub⟩
+    rcases h23 with ⟨d₂, h₂eq, h₂sub⟩
+    --for some reason this line does not work if I write the set {C | ...} without parentheses around C.
+    let d : (I₃.S → Set (PH.Submodule M)) := fun (A : I₃.S) ↦ {(C) | (C : PH.Submodule M) (_ : ∃ B : I₂.S, C ∈ d₁ B ∧ B.val ∈ d₂ A)}
+    use d
+    constructor
+    · intro A
+      sorry
+    · intro A x hmem
+      have haux : ∃ B : I₂.S, x ∈ d₁ B := by
+        simp only [d] at hmem
+        rcases hmem with ⟨a, b, c⟩
+        rcases b with ⟨B, d, e⟩
+        use B
+        rw[c] at d
+        exact d
+      rcases haux with ⟨B, hb⟩
+      have haux2 : d₁ B ⊆ I₁.S := by
+        exact h₁sub B
+      exact Set.mem_of_mem_of_subset hb haux2
 
 
 end DirectSumDecomposition
