@@ -171,10 +171,93 @@ variable {M : FunctCat C K} in
 def IsRefinement (N : PH.Submodule M) : DirectSumDecomposition N → DirectSumDecomposition N → Prop :=
   fun D₁ D₂ => ∃ d : D₂.S → Set (PH.Submodule M), (∀ (N : D₂.S), N.val = sSup ((d N))) ∧ (∀ N, d N ⊆ D₁.S)
 
+--API
+--The goal of these API lemmas is to obtain the proof for the remaining "sorry"
+--in ToTypeCat. In other words, need to show that the d function is surjective.
+--To do this, assume it isn't surjective, then show it contradicts N being direct sum
+variable {M : FunctCat C K} in
+lemma NissSupImage (N : PH.Submodule M) (I : DirectSumDecomposition N) (J : DirectSumDecomposition N)
+  (h : IsRefinement N J I) {d : I.S → Set (PH.Submodule M)}
+  {h_eq : ∀ (B : I.S), B = sSup (d B)}
+  {h_sub :  ∀ (B : I.S), d B ⊆ J.S} : N = ⨆ B, sSup (d B) := by
+  have h_aux : N = sSup I.S := I.h'
+  have h_NsupI : N = ⨆ (B: I.S), B.val := by
+    rw[sSup_eq_iSup'] at h_aux
+    exact h_aux
+  have h_equality : ∀ (B : I.S), id B = (sSup ∘ d) B := by
+    simp [h_eq]
+  have h_auxx : ⨆ (B : I.S), (id B).val = ⨆ B, (sSup ∘ d) B := by
+    rw[iSup_congr h_equality]
+  --rw is too limited to solve at this point
+  simp_rw[h_NsupI]
+  exact h_auxx
+
+
+
+--the exact statement i want out of this is still unclear. put aside for now.
+--work backwards from RefinementMapSurj rather
+variable {M : FunctCat C K} in
+lemma NissSupOverRange (N : PH.Submodule M) (I : DirectSumDecomposition N) (J : DirectSumDecomposition N)
+  (h : IsRefinement N J I) {d : I.S → Set (PH.Submodule M)}
+  {h_eq : ∀ (B : I.S), B = sSup (d B)}
+  {h_sub :  ∀ (B : I.S), d B ⊆ J.S} : N = ⨆ (B : I.S), ⨆ (A ∈ d B), A := by
+  have h_aux : ∀ (B : I.S), sSup (d B) = ⨆ A ∈ d B, A := by
+    intro B
+    apply sSup_eq_iSup
+  have h_auxx : N = ⨆ B, sSup (d B) := sorry
+  simp_rw [h_auxx]
+  sorry
+
+
+--J refines I
+variable {M : FunctCat C K} in
+lemma RefinementMapSurj (N : PH.Submodule M) (I : DirectSumDecomposition N) (J : DirectSumDecomposition N)
+  (h : IsRefinement N J I) {d : I.S → Set (PH.Submodule M)} : (∀ (A : J.S), ∃ (B : I.S), A.val ∈ d B) := by
+  by_contra h_abs
+  push_neg at h_abs
+  let f_aux : J.S → _ := fun (A : J.S) => ⨆ (_ : ∃ B : I.S, A.val ∈ d B), A.val
+  have h_dir_sum_J : N = sSup J.S := J.h'
+  --This would come from NisSupOverRange. Sorry'd for now, because I wanted to complete
+  --this lemma's proof's skeleton before committing to writing out NisSuopOverRange.
+  have h_dir_sum_d : N = ⨆ (A : J.S), f_aux A := sorry
+  rw[sSup_eq_iSup' J.S] at h_dir_sum_J
+  simp_rw[h_dir_sum_J] at h_dir_sum_d
+  rcases h_abs with ⟨A_contra, h_contra⟩
+  --This is not trivial because we have no guarantee (yet) that A_contra.val is not
+  --(for instance) equal to one of the f_aux A.
+  have h_lt : ⨆ (A : J.S), f_aux A < (⨆ (A : J.S), f_aux A) ⊔ A_contra.val := by
+    sorry
+  have h_le : (⨆ (A : J.S), f_aux A) ⊔ A_contra.val ≤ N := by
+    rw[←sSup_pair]
+    apply sSup_le
+    rintro b h_mem
+    rcases h_mem with h | h
+    · have h_sup : ∀ (A : J.S), f_aux A ≤ N := by
+        intro A
+        simp only [f_aux]
+        apply iSup_le
+        intro h_unec_hyp
+        simp_rw[h_dir_sum_J]
+        apply le_iSup
+      rw[h]
+      exact iSup_le h_sup
+    · simp at h
+      rw[h]
+      simp_rw[h_dir_sum_J]
+      apply le_iSup
+  have h_aux : ⨆ A, f_aux A < N := by
+    exact lt_of_lt_of_le h_lt h_le
+  simp_rw[←h_dir_sum_d] at h_aux
+  simp_rw [←h_dir_sum_J] at h_aux
+  simp at h_aux
+
+
+
 /- The decompositions are ordered by refinement. With the current definition of
 refinement, this might be a bit awkward to prove, so let's leave it sorried out for now.-/
 instance (N : PH.Submodule M) : Preorder (DirectSumDecomposition N) where
   le D₁ D₂ := IsRefinement N D₁ D₂
+  --D₁ ≤ D₂ iff D₁ refines D₂. This is not the order from the paper, but its dual.
   le_refl D := by
     simp
     rw[IsRefinement]
@@ -196,6 +279,7 @@ instance (N : PH.Submodule M) : Preorder (DirectSumDecomposition N) where
     use d
     constructor
     · intro A
+      --This should not be particularly difficult
       sorry
     · intro A x hmem
       have haux : ∃ B : I₂.S, x ∈ d₁ B := by
@@ -221,10 +305,25 @@ inverse limit explicitly but I think this would be really painful and messy...-/
 
 -- Here we write some code to go from chains in directSumDecompositions to diagrams in the category of types
 variable {M} in
-def ToTypeCat (N : PH.Submodule M) : (DirectSumDecomposition N) ⥤ Type where
+noncomputable def ToTypeCat (N : PH.Submodule M) : (DirectSumDecomposition N) ⥤ Type where
   obj D := Subtype D.S
-  -- Define the maps f_{IJ} induced by I ≤ J
-  map f := sorry
+  -- Define the maps f_{IJ} induced by "J refines I"
+  -- Since we are working with dual order, we write J I to have J ≤ I
+  map {J I} f := by
+    dsimp
+    have h_le := leOfHom f
+    simp only [LE.le, IsRefinement] at h_le
+    let d := Exists.choose h_le
+    have h_aux : (∀ (N_1 : ↑I.S), ↑N_1 = sSup (d N_1)) ∧ ∀ (N_1 : ↑I.S), d N_1 ⊆ J.S := by
+      apply Exists.choose_spec h_le
+    rcases h_aux with ⟨hsup, hincl⟩
+    --this should just be RefinementMapSurj
+    have h : ∀ (A : J.S), ∃ (B : I.S), A.val ∈ d B := by
+      sorry
+    let f : J.S → I.S := fun A => (h A).choose
+    exact f
+
+
 
 /- This is possibly useful to make things a bit cleaner so let's keep it for now but possibly remove it later -/
 variable {M} in
@@ -240,6 +339,7 @@ def ChainToInverseLimit (N : PH.Submodule M) (T : Set (DirectSumDecomposition N)
 
 variable (N : PH.Submodule M) (T : Set (DirectSumDecomposition N)) (L : limit (ChainToTypeCat N T))
 variable (I : Subtype T)
+variable (D : DirectSumDecomposition N)
 #check limit.π (ChainToTypeCat N T) I -- this is how we access the morphism L ⟶ I
 
 
@@ -270,7 +370,7 @@ def TrivialDecomp (N : PH.Submodule M) : DirectSumDecomposition N where
   S := {N}
   h := by
     sorry
-  h' := by
+  h':= by
     simp
 
 
