@@ -179,7 +179,7 @@ variable {M : FunctCat C K} in
 lemma NissSupImage (N : PH.Submodule M) (I : DirectSumDecomposition N) (J : DirectSumDecomposition N)
   (h : IsRefinement N J I) {d : I.S → Set (PH.Submodule M)}
   {h_eq : ∀ (B : I.S), B = sSup (d B)}
-  {h_sub :  ∀ (B : I.S), d B ⊆ J.S} : N = ⨆ B, sSup (d B) := by
+   : N = ⨆ B, sSup (d B) := by
   have h_aux : N = sSup I.S := I.h'
   have h_NsupI : N = ⨆ (B: I.S), B.val := by
     rw[sSup_eq_iSup'] at h_aux
@@ -193,33 +193,70 @@ lemma NissSupImage (N : PH.Submodule M) (I : DirectSumDecomposition N) (J : Dire
   exact h_auxx
 
 
-
---the exact statement i want out of this is still unclear. put aside for now.
---work backwards from RefinementMapSurj rather
-variable {M : FunctCat C K} in
-lemma NissSupOverRange (N : PH.Submodule M) (I : DirectSumDecomposition N) (J : DirectSumDecomposition N)
-  (h : IsRefinement N J I) {d : I.S → Set (PH.Submodule M)}
-  {h_eq : ∀ (B : I.S), B = sSup (d B)}
-  {h_sub :  ∀ (B : I.S), d B ⊆ J.S} : N = ⨆ (B : I.S), ⨆ (A ∈ d B), A := by
-  have h_aux : ∀ (B : I.S), sSup (d B) = ⨆ A ∈ d B, A := by
-    intro B
-    apply sSup_eq_iSup
-  have h_auxx : N = ⨆ B, sSup (d B) := sorry
-  simp_rw [h_auxx]
-  sorry
-
-
 --J refines I
 variable {M : FunctCat C K} in
 lemma RefinementMapSurj (N : PH.Submodule M) (I : DirectSumDecomposition N) (J : DirectSumDecomposition N)
-  (h : IsRefinement N J I) {d : I.S → Set (PH.Submodule M)} : (∀ (A : J.S), ∃ (B : I.S), A.val ∈ d B) := by
+  (h : IsRefinement N J I) {d : I.S → Set (PH.Submodule M)}
+  {h_eq : ∀ (B : I.S), B = sSup (d B)}
+  {h_sub :  ∀ (B : I.S), d B ⊆ J.S}
+  : (∀ (A : J.S), ∃ (B : I.S), A.val ∈ d B) := by
   by_contra h_abs
   push_neg at h_abs
-  let f_aux : J.S → _ := fun (A : J.S) => ⨆ (_ : ∃ B : I.S, A.val ∈ d B), A.val
+  let f_aux : J.S → _ := fun (A : J.S) => if ∃ B : I.S, A.val ∈ d B then A.val else ⊥
   have h_dir_sum_J : N = sSup J.S := J.h'
-  --This would come from NisSupOverRange. Sorry'd for now, because I wanted to complete
-  --this lemma's proof's skeleton before committing to writing out NisSuopOverRange.
-  have h_dir_sum_d : N = ⨆ (A : J.S), f_aux A := sorry
+  have h_dir_sum_d : N = ⨆ (A : J.S), f_aux A := by
+    have h_aux : ∀ (B : I.S), sSup (d B) = ⨆ A ∈ d B, A := by
+      intro B
+      apply sSup_eq_iSup
+    --for this next line, trying to write it in a single line withotu tactic mode
+    --creates issues with synthesizing implicit arguments.
+    have h_ssupI : N = ⨆ B, sSup (d B) := by
+      apply NissSupImage
+      exact h
+      exact h_eq
+    simp_rw [h_ssupI]
+    --we prove this equality by using antisymmetry of ≤.
+    apply le_antisymm
+    apply iSup_le_iff.mpr
+    intro B
+    rw[sSup_eq_iSup]
+    apply iSup_le
+    intro α
+    by_cases h_memb : α ∈ d B
+    simp[h_memb]
+    have h_surj : ∃ A : J.S, A.val = α := by
+      have h_alphaInJ : α ∈ J.S := by
+        apply Set.mem_of_mem_of_subset h_memb (h_sub B)
+      simp
+      exact h_alphaInJ
+    rcases h_surj with ⟨A_alph, h_equal⟩
+    have h_alpha_le : α ≤ f_aux A_alph := by
+      have h_exists_val : ∃ (B : I.S), A_alph.val ∈ d B := by
+        use B
+        rwa[h_equal]
+      simp only [f_aux, h_exists_val]
+      simp
+      rw[h_equal]
+    apply le_iSup_of_le A_alph h_alpha_le
+    --the line above closes the first case of by_cases.
+    simp [h_memb]
+    --and this one is enough to close the second.
+    --Now we prove the other direction of the inequality.
+    apply iSup_le
+    intro α
+    by_cases h_memb : ∃ B₀ : I.S, α.val ∈ d B₀
+    simp only [f_aux, h_memb]
+    simp --annoying that i have to simp twice...
+    rcases h_memb with ⟨B₀, h_in⟩
+    have h_aux_le : α.val ≤ sSup (d B₀) := by
+      apply le_sSup
+      exact h_in
+    apply le_iSup_of_le
+    exact h_aux_le
+    --the first case of by_cases is closed now.
+    simp only [f_aux, h_memb]
+    simp
+    --and the second is trivial. This concludes the proof of h_dir_sum_d.
   rw[sSup_eq_iSup' J.S] at h_dir_sum_J
   simp_rw[h_dir_sum_J] at h_dir_sum_d
   rcases h_abs with ⟨A_contra, h_contra⟩
@@ -235,10 +272,11 @@ lemma RefinementMapSurj (N : PH.Submodule M) (I : DirectSumDecomposition N) (J :
     · have h_sup : ∀ (A : J.S), f_aux A ≤ N := by
         intro A
         simp only [f_aux]
-        apply iSup_le
-        intro h_unec_hyp
-        simp_rw[h_dir_sum_J]
+        by_cases h_AIsImage : (∃ B, ↑A ∈ d B)
+        simp [h_AIsImage]
+        simp_rw [h_dir_sum_J]
         apply le_iSup
+        simp [h_AIsImage]
       rw[h]
       exact iSup_le h_sup
     · simp at h
@@ -311,15 +349,19 @@ noncomputable def ToTypeCat (N : PH.Submodule M) : (DirectSumDecomposition N) �
   -- Since we are working with dual order, we write J I to have J ≤ I
   map {J I} f := by
     dsimp
-    have h_le := leOfHom f
+    let h_le := leOfHom f
     simp only [LE.le, IsRefinement] at h_le
     let d := Exists.choose h_le
-    have h_aux : (∀ (N_1 : ↑I.S), ↑N_1 = sSup (d N_1)) ∧ ∀ (N_1 : ↑I.S), d N_1 ⊆ J.S := by
+    let h_aux : (∀ (B : ↑I.S), ↑B = sSup (d B)) ∧ ∀ (B : ↑I.S), d B ⊆ J.S := by
       apply Exists.choose_spec h_le
     rcases h_aux with ⟨hsup, hincl⟩
     --this should just be RefinementMapSurj
-    have h : ∀ (A : J.S), ∃ (B : I.S), A.val ∈ d B := by
-      sorry
+    let h_le_bis := leOfHom f
+    simp only [LE.le] at h_le_bis
+    let h : ∀ (A : J.S), ∃ (B : I.S), A.val ∈ d B := by
+      apply (RefinementMapSurj N I J h_le_bis)
+      exact hsup
+      --exact hincl - causes an infinite loop?
     let f : J.S → I.S := fun A => (h A).choose
     exact f
 
