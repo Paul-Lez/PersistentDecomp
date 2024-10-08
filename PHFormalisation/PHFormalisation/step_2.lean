@@ -318,8 +318,45 @@ instance : Preorder (DirectSumDecomposition M) where
     use d
     constructor
     · intro A
-      --This should not be particularly difficult
-      sorry
+      have h_chara_dA : ∀ B : I₂.S, (B.val ∈ d₂ A) → (∀ C, C ∈ (d₁ B) → C ∈ d A) := by
+        rintro B h_B_im C h_C_im
+        simp [d]
+        use B
+        simp
+        constructor
+        exact h_C_im
+        exact h_B_im
+      apply le_antisymm
+      · rw [h₂eq A]
+        apply sSup_le_iff.mpr
+        rintro B h_B_im
+        --this situation has come up a few times. Can't apply d₁ to B since
+        --B is just a PH_Submodule and not of type I₂.S. To work around this,
+        --I introduce B' the corresponding element in I₂.S.
+        have h_B_mem_I2 : B ∈ I₂.S := by
+          exact Set.mem_of_mem_of_subset h_B_im (h₂sub A)
+        set B' : I₂.S := ⟨B, h_B_mem_I2⟩ with h_def_B'
+        have h_supdef_B' : B = sSup (d₁ B') := (h₁eq B')
+        rw[h_supdef_B']
+        apply sSup_le_iff.mpr
+        rintro C h_C_im
+        have h_C_in_im_d : C ∈ d A := (h_chara_dA B' h_B_im C h_C_im)
+        exact (le_sSup h_C_in_im_d)
+      · apply sSup_le_iff.mpr
+        rintro C h_C_im
+        simp [d] at h_C_im
+        rcases h_C_im with ⟨B, h_aux, h_B_im⟩
+        rcases h_aux with ⟨h_B_in_I2, h_C_im_B⟩
+        let B' : I₂.S := ⟨B, h_B_in_I2⟩
+        have h_C_le_B : C ≤ B'.val := by
+          rw [h₁eq B']
+          apply le_sSup
+          exact h_C_im_B
+        have h_B_le_A : B'.val ≤ A.val := by
+          rw[h₂eq A]
+          apply le_sSup
+          exact h_B_im
+        exact le_trans (h_C_le_B) (h_B_le_A)
     · intro A x hmem
       have haux : ∃ B : I₂.S, x ∈ d₁ B := by
         simp only [d] at hmem
