@@ -444,6 +444,7 @@ lemma Indecomposable_of_mem_Max_Direct_sum_decomposition
     sorry
   exact contra hmax
 
+/-- If `N` is a submodule of `M` that is part of a minimal direct sum decomposition, then `N` is indecomposable -/
 lemma Indecomposable'_of_mem_Min_Direct_sum_decomposition
   (D : DirectSumDecomposition M) (N : PH.Submodule M) (hN : N ∈ D.S) (hmax : IsMin D) : Indecomposable' N := by
   by_contra hNotMax
@@ -461,15 +462,14 @@ lemma Indecomposable'_of_mem_Min_Direct_sum_decomposition
       intro b
       obtain ⟨a, ha⟩ := (D.h x).right b
       sorry
-  let Cex : DirectSumDecomposition M :=  ⟨S, h⟩
+  let Cex : DirectSumDecomposition M := ⟨S, h⟩
   have contra : ¬ IsMin D := by
     simp only [not_isMin_iff]
     use Cex
     apply lt_of_le_of_ne
     --this is very golfable
     · set d : D.S → Set (PH.Submodule M) := fun (I : D.S) ↦ if I.val = N then {x, y} else {I.val} with hd
-      use d
-      refine ⟨fun I => ?_, fun I => ?_⟩
+      use d, fun I => ?_, fun I => ?_
       · by_cases hI : I.val = N
         · simp only [hd, hI, ↓reduceIte, sSup_insert, csSup_singleton, ← hxy']
         · simp only [hd, hI, ↓reduceIte, sSup_insert, csSup_singleton]
