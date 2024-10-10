@@ -1,4 +1,4 @@
-import Mathlib.Algebra.Category.ModuleCat.Abelian --ModuleCat is an abelian category
+import Mathlib.Algebra.Category.ModuleCat.Abelian
 import Mathlib.Algebra.Module.LinearMap.Basic
 import Mathlib.Algebra.DirectSum.Module
 import Mathlib.CategoryTheory.Limits.Shapes.ZeroObjects
@@ -64,8 +64,7 @@ instance : Lattice (PH.Submodule M) where
       intro x y f
       rw [Submodule.map_sup]
       apply sup_le_sup (N₁.h_mods f) (N₂.h_mods f) }
-  le_sup_left := by
-    intro a b x
+  le_sup_left a b x := by
     aesop
   le_sup_right := by
     intro a b x
@@ -114,10 +113,13 @@ variable {σ₂₁ : R₂ →+* R} [RingHomInvPair σ₁₂ σ₂₁] [RingHomIn
 variable {F : Type*} [FunLike F M M₂] [SemilinearMapClass F σ₁₂ M M₂]
 
 lemma Submodule.map_sSup (f : F) (S : Set (Submodule R M)) :
-  (sSup S).map f = sSup (map f '' S) := by sorry
+    (sSup S).map f = sSup (map f '' S) := by
+  rw [(gc_map_comap f : GaloisConnection (map f) (comap f)).l_sSup, sSup_eq_iSup', iSup_subtype, iSup_image]
 
 lemma Submodule.map_sInf (f : F) (S : Set (Submodule R M)) :
-  (sInf S).map f ≤ sInf (map f '' S) := by sorry
+    (sInf S).map f ≤ sInf (map f '' S) := by
+  rw [(gc_map_comap f).le_iff_le, (gc_map_comap f).u_sInf, iInf_image, sInf_eq_iInf, iInf_subtype',  iInf_subtype']
+  apply iInf_mono (fun i => (gc_map_comap f).le_u_l _)
 
 end
 
@@ -183,17 +185,13 @@ lemma NissSupImage (I : DirectSumDecomposition M) (J : DirectSumDecomposition M)
   {h_eq : ∀ (B : I.S), B = sSup (d B)}
    : ⊤ = ⨆ B, sSup (d B) := by
   have h_aux : ⊤ = sSup I.S := (sSup_eq_top_of_direct_sum_decomposition I).symm
-  have h_supI : ⊤ = ⨆ (B: I.S), B.val := by
-    rw[sSup_eq_iSup'] at h_aux
-    exact h_aux
+  have h_supI : ⊤ = ⨆ (B: I.S), B.val := by rwa[sSup_eq_iSup'] at h_aux
   have h_equality : ∀ (B : I.S), id B = (sSup ∘ d) B := by
-    simp [h_eq]
-  have h_auxx : ⨆ (B : I.S), (id B).val = ⨆ B, (sSup ∘ d) B := by
-    rw[iSup_congr h_equality]
+    simp only [id_eq, h_eq, Function.comp_apply, implies_true]
+  have h_auxx : ⨆ (B : I.S), (id B).val = ⨆ B, (sSup ∘ d) B := by rw[iSup_congr h_equality]
   --rw is too limited to solve at this point
   simp_rw[h_supI]
   exact h_auxx
-
 
 --J refines I
 variable {M : FunctCat C K} in
@@ -211,7 +209,7 @@ lemma RefinementMapSurj -- (N : PH.Submodule M)
     have h_aux : ∀ (B : I.S), sSup (d B) = ⨆ A ∈ d B, A := by
       intro B
       apply sSup_eq_iSup
-    --for this next line, trying to write it in a single line withotu tactic mode
+    --for this next line, trying to write it in a single line without tactic mode
     --creates issues with synthesizing implicit arguments.
     have h_ssupI : ⊤ = ⨆ B, sSup (d B) := by
       apply NissSupImage
@@ -298,80 +296,38 @@ instance : Preorder (DirectSumDecomposition M) where
   le D₁ D₂ := IsRefinement D₁ D₂
   --D₁ ≤ D₂ iff D₁ refines D₂. This is not the order from the paper, but its dual.
   le_refl D := by
-    simp
-    rw[IsRefinement]
-    let d : (D.S → Set (PH.Submodule M)) := fun (I : D.S) ↦ {I.val}
-    use d
-    constructor
-    · intro I
-      aesop
-    · intro I
-      aesop
-  le_trans I₁ I₂ I₃ := by
-    intro h12 h23
-    simp at *
-    rw [IsRefinement] at *
+    use fun (I : D.S) ↦ {I.val}, by aesop, by aesop
+  le_trans I₁ I₂ I₃ h12 h23 := by
     rcases h12 with ⟨d₁, h₁eq, h₁sub⟩
     rcases h23 with ⟨d₂, h₂eq, h₂sub⟩
-    --for some reason this line does not work if I write the set {C | ...} without parentheses around C.
-    let d : (I₃.S → Set (PH.Submodule M)) := fun (A : I₃.S) ↦ {(C) | (C : PH.Submodule M) (_ : ∃ B : I₂.S, C ∈ d₁ B ∧ B.val ∈ d₂ A)}
-    use d
-    constructor
-    · intro A
-      have h_chara_dA : ∀ B : I₂.S, (B.val ∈ d₂ A) → (∀ C, C ∈ (d₁ B) → C ∈ d A) := by
-        rintro B h_B_im C h_C_im
-        simp [d]
-        use B
-        simp
-        constructor
-        exact h_C_im
-        exact h_B_im
-      apply le_antisymm
+    let d := fun (A : I₃.S) ↦ {(C) | (C : PH.Submodule M) (_ : ∃ B : I₂.S, C ∈ d₁ B ∧ B.val ∈ d₂ A)}
+    use d, fun A => ?_ , fun A x ⟨a, ⟨B, d, _⟩, c⟩ =>
+      Set.mem_of_mem_of_subset (c ▸ d) (h₁sub B)
+    have h_chara_dA  (B : I₂.S) (h_B_im : B.val ∈ d₂ A) (C) (h_C_im : C ∈ (d₁ B)) : C ∈ d A:= by
+      simp only [Subtype.exists, exists_and_right, exists_prop, exists_eq_right, Set.mem_setOf_eq,
+        d]
+      use B
+      simpa only [Subtype.coe_eta, Subtype.coe_prop, exists_const] using ⟨h_C_im, h_B_im⟩
+    apply le_antisymm
+    · rw [h₂eq A]
+      apply sSup_le_iff.mpr (fun B h_B_im => ?_)
+      set B' : I₂.S := ⟨B, Set.mem_of_mem_of_subset h_B_im (h₂sub A)⟩
+      have h_supdef_B' : B = sSup (d₁ B') := h₁eq B'
+      rw [h_supdef_B']
+      apply sSup_le_iff.mpr (fun C h_C_im => (le_sSup (h_chara_dA B' h_B_im C h_C_im)))
+    · apply sSup_le_iff.mpr (fun C h_C_im => ?_)
+      simp only [Subtype.exists, exists_and_right, exists_prop, exists_eq_right, Set.mem_setOf_eq,
+        d] at h_C_im
+      rcases h_C_im with ⟨B, ⟨h_B_in_I2, h_C_im_B⟩, h_B_im⟩
+      let B' : I₂.S := ⟨B, h_B_in_I2⟩
+      trans B'.val
+      · rw [h₁eq B']
+        apply le_sSup h_C_im_B
       · rw [h₂eq A]
-        apply sSup_le_iff.mpr
-        rintro B h_B_im
-        --this situation has come up a few times. Can't apply d₁ to B since
-        --B is just a PH_Submodule and not of type I₂.S. To work around this,
-        --I introduce B' the corresponding element in I₂.S.
-        have h_B_mem_I2 : B ∈ I₂.S := by
-          exact Set.mem_of_mem_of_subset h_B_im (h₂sub A)
-        set B' : I₂.S := ⟨B, h_B_mem_I2⟩ with h_def_B'
-        have h_supdef_B' : B = sSup (d₁ B') := (h₁eq B')
-        rw[h_supdef_B']
-        apply sSup_le_iff.mpr
-        rintro C h_C_im
-        have h_C_in_im_d : C ∈ d A := (h_chara_dA B' h_B_im C h_C_im)
-        exact (le_sSup h_C_in_im_d)
-      · apply sSup_le_iff.mpr
-        rintro C h_C_im
-        simp [d] at h_C_im
-        rcases h_C_im with ⟨B, h_aux, h_B_im⟩
-        rcases h_aux with ⟨h_B_in_I2, h_C_im_B⟩
-        let B' : I₂.S := ⟨B, h_B_in_I2⟩
-        have h_C_le_B : C ≤ B'.val := by
-          rw [h₁eq B']
-          apply le_sSup
-          exact h_C_im_B
-        have h_B_le_A : B'.val ≤ A.val := by
-          rw[h₂eq A]
-          apply le_sSup
-          exact h_B_im
-        exact le_trans (h_C_le_B) (h_B_le_A)
-    · intro A x hmem
-      have haux : ∃ B : I₂.S, x ∈ d₁ B := by
-        simp only [d] at hmem
-        rcases hmem with ⟨a, b, c⟩
-        rcases b with ⟨B, d, e⟩
-        use B
-        rw[c] at d
-        exact d
-      rcases haux with ⟨B, hb⟩
-      have haux2 : d₁ B ⊆ I₁.S := by
-        exact h₁sub B
-      exact Set.mem_of_mem_of_subset hb haux2
+        apply le_sSup h_B_im
 
--- -- TODO Paul: Make sure this is not stupid
 instance : PartialOrder (DirectSumDecomposition M) where
+  --I suspect this will be painful to prove
   le_antisymm := sorry
 
 
@@ -441,7 +397,7 @@ lemma every_chain_has_an_upper_bound (N : PH.Submodule M)
 lemma zorny_lemma (N : PH.Submodule M) : ∃ (D : DirectSumDecomposition M), IsMax D := by
   apply zorn_le
   rintro T hT
-  rw[bddAbove_def]
+  rw [bddAbove_def]
   use (DirectSumDecomposition_of_chain hT)
   exact (every_chain_has_an_upper_bound M N hT)
 
@@ -490,15 +446,32 @@ lemma Indecomposable'_of_mem_Min_Direct_sum_decomposition
   obtain ⟨x, hx, y, hx', hy', hxy, hxy', hy⟩ := hNotMax
   set S : Set (PH.Submodule M) := (D.S \ {N}) ∪ {x, y} with hS
   have h : ∀ (x : C), DirectSum.IsInternal (fun p : S => (p.val.mods x : Submodule _ _)) := by
-    intro x
+    intro x'
+    rw [DirectSum.isInternal_submodule_iff_independent_and_iSup_eq_top]
     constructor
     · --this is going to be a bit of a pain to prove
-      intro a b hab
-      sorry
-    · --same here
-      intro b
-      obtain ⟨a, ha⟩ := (D.h x).right b
-      sorry
+      intro a b hab hb'
+      by_cases ha : a = x
+      · have : b ≤ N.mods x' := le_trans (ha ▸ hab) (hx' x')
+        --this should now follow from the independence of the direct sum decomposition `D`
+        --have := calc b ≤ (⨆ j, ⨆ (_ : j ≠ a), (fun (p : S) ↦ p.val.mods x') j) := by sorry
+        --_ ≤ (⨆ j, ⨆ (_ : j ≠ a), (fun (p : D.S) ↦ p.val.mods x') j)
+        sorry
+      · by_cases hb : a = y
+        · have : b ≤ N.mods x' := le_trans (hb ▸ hab) (hy' x')
+          --this should now follow from the independence of the direct sum decomposition `D`
+          sorry
+          --Since the sum is over j ≠ a, it will include `x ⊔ y = N` so we can rewrite it in a nicer way
+        · have : (⨆ j, ⨆ (_ : j ≠ a), (fun (p : S) ↦ p.val.mods x') j) =
+            ⨆ j, ⨆ (_ : j.val ≠ a.val), (fun (p : D.S) => p.val.mods x') j := by
+            sorry
+          --this should now follow from the independence of the direct sum decomposition `D`
+          rw [this] at hb'
+          sorry
+      --The direct sum is indexed over all `j` in `S` so we can rewrite it in a nicer way by using `x ⊔ y = N`.
+    · calc (⨆ (p : S), p.val.mods x') = (⨆ (p : D.S), p.val.mods x') := by sorry
+      _ = ⊤ := by
+        apply ((DirectSum.isInternal_submodule_iff_independent_and_iSup_eq_top _).mp <| D.h x').right
   let Cex : DirectSumDecomposition M := ⟨S, h⟩
   have contra : ¬ IsMin D := by
     simp only [not_isMin_iff]
