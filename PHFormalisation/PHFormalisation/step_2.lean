@@ -279,10 +279,9 @@ lemma RefinementMapSurj
 instance : Preorder (DirectSumDecomposition M) where
   le D₁ D₂ := IsRefinement D₁ D₂
   --D₁ ≤ D₂ iff D₁ refines D₂. This is not the order from the paper, but its dual.
-  le_refl D := by
-    use fun (I : D.S) ↦ {I.val}, by aesop, by aesop
+  le_refl D := by use fun (I : D.S) ↦ {I.val}, by aesop, by aesop
   le_trans I₁ I₂ I₃ h12 h23 := by
-    rcases h12 with ⟨d₁, h₁eq, h₁sub⟩
+    rcases h12  with ⟨d₁, h₁eq, h₁sub⟩
     rcases h23 with ⟨d₂, h₂eq, h₂sub⟩
     let d := fun (A : I₃.S) ↦ {(C) | (C : PH.Submodule M) (_ : ∃ B : I₂.S, C ∈ d₁ B ∧ B.val ∈ d₂ A)}
     use d, fun A => ?_ , fun A x ⟨a, ⟨B, d, _⟩, c⟩ => Set.mem_of_mem_of_subset (c ▸ d) (h₁sub B)
@@ -291,8 +290,7 @@ instance : Preorder (DirectSumDecomposition M) where
       use B
       simpa only [Subtype.coe_eta, Subtype.coe_prop, exists_const] using ⟨h_C_im, h_B_im⟩
     apply le_antisymm
-    · rw [h₂eq A]
-      apply sSup_le_iff.mpr (fun B h_B_im => ?_)
+    · apply h₂eq A ▸ sSup_le_iff.mpr (fun B h_B_im => ?_)
       set B' : I₂.S := ⟨B, Set.mem_of_mem_of_subset h_B_im (h₂sub A)⟩
       apply h₁eq B' ▸ sSup_le_iff.mpr (fun C h_C_im => (le_sSup (h_chara_dA B' h_B_im C h_C_im)))
     · apply sSup_le_iff.mpr (fun C h_C_im => ?_)
