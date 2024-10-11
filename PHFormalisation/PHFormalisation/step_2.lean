@@ -35,10 +35,9 @@ structure PH.Submodule where
     in the submodule `mods y`. -/
     (h_mods : ∀ {x y : C} (f : x ⟶ y), (mods x).map (M.map f) ≤ mods y)
 
-
 -- TODO: make this better.
 @[ext]
-lemma PH.Submodule.ext' (N₁ N₂ : Submodule M) (h :
+lemma PH.Submodule.ext' {N₁ N₂ : Submodule M} (h :
   ∀ x, N₁.mods x = N₂.mods x) : N₁ = N₂ := by
   aesop
 
@@ -46,14 +45,8 @@ lemma PH.Submodule.ext' (N₁ N₂ : Submodule M) (h :
 instance : PartialOrder (PH.Submodule M) where
   le N₁ N₂ := ∀ x, N₁.mods x ≤ N₂.mods x
   le_refl N := fun x => le_refl _
-  le_trans N₁ N₂ N₃ := by
-    intro h h' x
-    exact le_trans (h x) (h' x)
-  le_antisymm N₁ N₂ := by
-    intro h h'
-    apply PH.Submodule.ext'
-    intro x
-    exact le_antisymm (h x) (h' x)
+  le_trans N₁ N₂ N₃ h h' x := le_trans (h x) (h' x)
+  le_antisymm N₁ N₂ h h' := PH.Submodule.ext' _ (fun x => le_antisymm (h x) (h' x))
 
 /- There's a notion of the supremum of two submodules, given by `⊕`,
 and a notion of an infimum, given by `∩`.-/
@@ -64,14 +57,9 @@ instance : Lattice (PH.Submodule M) where
       intro x y f
       rw [Submodule.map_sup]
       apply sup_le_sup (N₁.h_mods f) (N₂.h_mods f) }
-  le_sup_left a b x := by
-    aesop
-  le_sup_right := by
-    intro a b x
-    aesop
-  sup_le := by
-    intro a b c h h' x
-    aesop
+  le_sup_left a b x := by aesop
+  le_sup_right a b x := by aesop
+  sup_le a b c h h' x := by aesop
   inf N₁ N₂ := {
     mods := fun x => (N₁.mods x) ⊓ (N₂.mods x)
     h_mods := by
@@ -79,9 +67,7 @@ instance : Lattice (PH.Submodule M) where
       apply le_trans (Submodule.map_inf_le _) (inf_le_inf (N₁.h_mods f) (N₂.h_mods f)) }
   inf_le_left a b x := by aesop
   inf_le_right a b x := by aesop
-  le_inf := by
-    intro a b c h h' x
-    aesop
+  le_inf a b c h h' x := by aesop
 
 /- There's a notion of a minimal submodule, namely `0`-/
 instance : OrderBot (PH.Submodule M) where
@@ -195,7 +181,7 @@ lemma NissSupImage (I : DirectSumDecomposition M) (J : DirectSumDecomposition M)
 
 --J refines I
 variable {M : FunctCat C K} in
-lemma RefinementMapSurj -- (N : PH.Submodule M)
+lemma RefinementMapSurj
 (I : DirectSumDecomposition M) (J : DirectSumDecomposition M)
   (h : IsRefinement J I) {d : I.S → Set (PH.Submodule M)}
   {h_eq : ∀ (B : I.S), B = sSup (d B)}
@@ -290,8 +276,6 @@ lemma RefinementMapSurj -- (N : PH.Submodule M)
   simp_rw [←h_dir_sum_J] at h_aux
   simp at h_aux
 
-/- The decompositions are ordered by refinement. With the current definition of
-refinement, this might be a bit awkward to prove, so let's leave it sorried out for now.-/
 instance : Preorder (DirectSumDecomposition M) where
   le D₁ D₂ := IsRefinement D₁ D₂
   --D₁ ≤ D₂ iff D₁ refines D₂. This is not the order from the paper, but its dual.
@@ -301,30 +285,21 @@ instance : Preorder (DirectSumDecomposition M) where
     rcases h12 with ⟨d₁, h₁eq, h₁sub⟩
     rcases h23 with ⟨d₂, h₂eq, h₂sub⟩
     let d := fun (A : I₃.S) ↦ {(C) | (C : PH.Submodule M) (_ : ∃ B : I₂.S, C ∈ d₁ B ∧ B.val ∈ d₂ A)}
-    use d, fun A => ?_ , fun A x ⟨a, ⟨B, d, _⟩, c⟩ =>
-      Set.mem_of_mem_of_subset (c ▸ d) (h₁sub B)
+    use d, fun A => ?_ , fun A x ⟨a, ⟨B, d, _⟩, c⟩ => Set.mem_of_mem_of_subset (c ▸ d) (h₁sub B)
     have h_chara_dA  (B : I₂.S) (h_B_im : B.val ∈ d₂ A) (C) (h_C_im : C ∈ (d₁ B)) : C ∈ d A:= by
-      simp only [Subtype.exists, exists_and_right, exists_prop, exists_eq_right, Set.mem_setOf_eq,
-        d]
+      simp only [Subtype.exists, exists_and_right, exists_prop, exists_eq_right, Set.mem_setOf_eq, d]
       use B
       simpa only [Subtype.coe_eta, Subtype.coe_prop, exists_const] using ⟨h_C_im, h_B_im⟩
     apply le_antisymm
     · rw [h₂eq A]
       apply sSup_le_iff.mpr (fun B h_B_im => ?_)
       set B' : I₂.S := ⟨B, Set.mem_of_mem_of_subset h_B_im (h₂sub A)⟩
-      have h_supdef_B' : B = sSup (d₁ B') := h₁eq B'
-      rw [h_supdef_B']
-      apply sSup_le_iff.mpr (fun C h_C_im => (le_sSup (h_chara_dA B' h_B_im C h_C_im)))
+      apply h₁eq B' ▸ sSup_le_iff.mpr (fun C h_C_im => (le_sSup (h_chara_dA B' h_B_im C h_C_im)))
     · apply sSup_le_iff.mpr (fun C h_C_im => ?_)
       simp only [Subtype.exists, exists_and_right, exists_prop, exists_eq_right, Set.mem_setOf_eq,
         d] at h_C_im
       rcases h_C_im with ⟨B, ⟨h_B_in_I2, h_C_im_B⟩, h_B_im⟩
-      let B' : I₂.S := ⟨B, h_B_in_I2⟩
-      trans B'.val
-      · rw [h₁eq B']
-        apply le_sSup h_C_im_B
-      · rw [h₂eq A]
-        apply le_sSup h_B_im
+      apply le_trans (h₁eq ⟨B, h_B_in_I2⟩ ▸ le_sSup h_C_im_B) (h₂eq A ▸ le_sSup h_B_im)
 
 instance : PartialOrder (DirectSumDecomposition M) where
   --I suspect this will be painful to prove
