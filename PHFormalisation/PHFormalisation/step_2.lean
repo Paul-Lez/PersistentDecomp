@@ -42,7 +42,7 @@ lemma PH.Submodule.ext' {N₁ N₂ : Submodule M} (h :
   aesop
 
 -- Persistence submodules are ordered by pointwise inclusion
-instance : PartialOrder (PH.Submodule M) where
+instance Submod_le : PartialOrder (PH.Submodule M) where
   le N₁ N₂ := ∀ x, N₁.mods x ≤ N₂.mods x
   le_refl N := fun x => le_refl _
   le_trans N₁ N₂ N₃ h h' x := le_trans (h x) (h' x)
@@ -110,6 +110,7 @@ lemma Submodule.map_sInf (f : F) (S : Set (Submodule R M)) :
 end
 
 -- There's a notion of supremum over arbitrary sets of submodules
+@[simp]
 instance : SupSet (PH.Submodule M) where
   sSup S := {
     -- The direct sum over arbitrary sets is just the pointwise direct sum
@@ -120,6 +121,7 @@ instance : SupSet (PH.Submodule M) where
       sorry }
 
 -- There's a notion of infimums over arbitrary sets of submodules
+@[simp]
 instance : InfSet (PH.Submodule M) where
   sInf S := {
     -- The intersection over arbitrary sets is just the pointwise direct sum
@@ -154,7 +156,29 @@ structure DirectSumDecomposition where
 variable {M} in
 lemma sSup_eq_top_of_direct_sum_decomposition (D : DirectSumDecomposition M) :
     sSup D.S = ⊤ := by
-  sorry
+  apply le_antisymm; simp
+  simp only [LE.le]
+  intro X x h_mem
+  have h_sum := D.h X
+  by_contra h_neq
+  apply DirectSum.IsInternal.submodule_iSup_eq_top at h_sum
+  rw [sSup_eq_iSup'] at h_neq
+  replace h_mem : x ∈ (⊤ : Submodule K _) := by
+    exact h_mem
+  have h_contra : x ∈ (⨆ (p : D.S), p.val).mods X := by
+    rw [←h_sum] at h_mem; simp [iSup]
+    have h_sub : (⨆ (p : D.S), (p.val.mods X)) ≤ sSup {x | ∃ N ∈ D.S, N.mods X = x} := by
+      rw [sSup_eq_iSup']
+      apply iSup_le; intro p
+      have h_aux : p.val.mods X ∈ {x | ∃ N ∈ D.S, N.mods X = x} := by
+        simp; use p; simp
+      let p_aux : {x | ∃ N ∈ D.S, N.mods X = x} := ⟨p.val.mods X, h_aux⟩
+      apply le_iSup_of_le p_aux; simp
+    exact h_sub h_mem
+  exact (h_neq h_contra)
+
+
+
 
 --careful: this means that D₁ refines D₂
 variable {M : FunctCat C K} in
@@ -311,26 +335,65 @@ noncomputable def ToTypeCat : (DirectSumDecomposition M) ⥤ Type where
 
 /- This is possibly useful to make things a bit cleaner so let's keep it for now but possibly remove it later -/
 variable {M} in
-def ChainToTypeCat (T : Set (DirectSumDecomposition M)) :
+noncomputable def ChainToTypeCat (T : Set (DirectSumDecomposition M)) :
   Subtype T ⥤ Type where
-  obj D := sorry
-  map f := sorry
+  obj D := ToTypeCat.obj D.val
+  map {J I} f := ToTypeCat.map f
+  map_id := by
+    dsimp
+    intro I
+    rw [←ToTypeCat.map_id]
+    rfl
+  map_comp := by
+    dsimp
+    intro I J K f g
+    rw [←ToTypeCat.map_comp]
+    rfl
+
 
 /- Construct the element `L` (in the notation of our doc) -/
 def ChainToInverseLimit (T : Set (DirectSumDecomposition M)) :
   Type := limit (ChainToTypeCat T)
 
 
-variable (N : PH.Submodule M) (T : Set (DirectSumDecomposition M)) (L : limit (ChainToTypeCat T))
+variable (N : PH.Submodule M) (T : Set (DirectSumDecomposition M)) (F := (ChainToTypeCat T)) (l : limit (ChainToTypeCat T))
 variable (I : Subtype T)
 variable (D : DirectSumDecomposition M)
-#check limit.π (ChainToTypeCat T) I -- this is how we access the morphism L ⟶ I
+#check (limit.π (ChainToTypeCat T)) --this is the morphism L ⟶ ChainToTypeCat.obj I
+#check ((limit.π (ChainToTypeCat T) I) l) -- apply this morphism to l. This has type (ChainToTypeCat T).obj I - other words, Subtype I.val.S
+#check ((limit.π (ChainToTypeCat T) I) l).val --PH.Submodule
+#check ((limit.π (ChainToTypeCat T) I) l).prop
+#check (ChainToTypeCat T)
+#check I.val
+#check F
+#check F.obj I
 
+
+
+/-Construct `M[λ]` in the notation of our doc -/
+variable {M} in
+noncomputable def Submodule_of_chain {T : Set (DirectSumDecomposition M)} (hT : IsChain
+  LE.le T) (l : limit (ChainToTypeCat T)) : PH.Submodule M := by
+  let f : Subtype T → PH.Submodule M := fun (I : Subtype T) ↦ ((limit.π (ChainToTypeCat T) I) l).val
+  let M_l : (PH.Submodule M) := ⨅ (I : Subtype T), f I
+  exact M_l
+
+
+
+/-`M` is the direct sum of all the `M[λ]` -/
+variable {M} in
+lemma M_is_dir_sum_lambdas {T : Set (DirectSumDecomposition M)} (hT : IsChain
+  LE.le T) (x : C) :
+  DirectSum.IsInternal (fun (l : limit (ChainToTypeCat T)) => ((Submodule_of_chain hT l).mods x : Submodule K (M.obj x))) := by
+  apply (DirectSum.isInternal_submodule_iff_independent_and_iSup_eq_top _).mpr
+  sorry
 
 /- Get a direct sum out of a chain (this should be the index set 𝓤 in out doc)-/
 variable {M} in
 def DirectSumDecomposition_of_chain {T : Set (DirectSumDecomposition M)} (hT : IsChain
-  LE.le T) : DirectSumDecomposition M := sorry
+  LE.le T) : DirectSumDecomposition M where
+  S := {(Submodule_of_chain hT l) | (l : limit (ChainToTypeCat T)) (_ : ¬ IsBot (Submodule_of_chain hT l))}
+  h := sorry
 
 /- The set `𝓤` is an upper bound for the chain `T` -/
 lemma every_chain_has_an_upper_bound (N : PH.Submodule M)
