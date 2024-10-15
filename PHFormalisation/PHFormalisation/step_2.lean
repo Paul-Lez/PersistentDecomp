@@ -133,14 +133,88 @@ instance : InfSet (PH.Submodule M) where
       -- Here we're using the compatibility condition on submodules
       sorry }
 
+
+
+-- API to simplify using ≤ on submodules
+
+-- A submodule is less than another if and only if every single submodule is LE
+lemma le_PH_submod_implies_le_submod (A B : PH.Submodule M) (h_le : B ≤ A)
+  : ∀ X : C, B.mods X ≤ A.mods X := by
+  intro X
+  simp [LE.le] at *
+  exact (h_le X)
+
+-- Reciprocal of the above
+lemma le_submod_implies_le_PH_submod (A B : PH.Submodule M) (h_le : ∀ X : C, B.mods X ≤ A.mods X)
+  : B ≤ A := by
+  simp [LE.le]
+  intro X x h_mem
+  exact (h_le X h_mem)
+
+-- If S is a set of PH.Submodule, then ⨆ (p : S), (p.val.mods X) = (⨆ (p : S), p.val).mods X
+-- In other words, we can take Sup and mods in whichever order we want.
+lemma sup_comm_mods (S : Set (PH.Submodule M))
+  : ⨆ (p : S), (p.val.mods X) = (⨆ (p : S), p.val).mods X := by
+  apply le_antisymm
+  · simp [iSup]
+    rw [sSup_eq_iSup']
+    intro p h_mem
+    have h_aux : p.mods X ∈ {x | ∃ N ∈ S, N.mods X = x} := by
+      simp; use p
+    let p_aux : {x | ∃ N ∈ S, N.mods X = x} := ⟨p.mods X, h_aux⟩
+    apply le_iSup_of_le p_aux; simp
+  · simp [iSup]
+    simp only [sSup_eq_iSup]
+    intro p h_mem
+    apply le_iSup_iff.mpr
+    simp
+    intro B h_le
+    exact (h_le p h_mem)
+
+
 -- The sups and infs over possibly infinite sets are compatible with the lattice structure
 instance : CompleteLattice (PH.Submodule M) where
-  le_sSup := sorry
-  sSup_le := sorry
-  sInf_le := sorry
-  le_sInf := sorry
-  le_top := sorry
-  bot_le := sorry
+  le_sSup := by
+    intro S A h_mem
+    apply le_submod_implies_le_PH_submod
+    intro X
+    -- maybe write some API to get rid of these annoying sSups without
+    -- resorting to the simp nuke?
+    simp
+    let A' : {x | ∃ N ∈ S, N.mods X = x} := ⟨A.mods X, by simp; use A⟩
+    apply le_sSup_of_le (A'.prop) (by simp)
+  sSup_le := by
+    intro S A h_le
+    apply le_submod_implies_le_PH_submod
+    intro X
+    simp
+    intro a h_mem_a
+    exact h_le a h_mem_a X
+  sInf_le := by
+    intro S A h_mem
+    apply le_submod_implies_le_PH_submod
+    intro X
+    simp
+    let A' : {x | ∃ N ∈ S, N.mods X = x} := ⟨A.mods X, by simp; use A⟩
+    apply sInf_le_of_le A'.prop
+    rfl
+  le_sInf := by
+    intro S A h_le
+    apply le_submod_implies_le_PH_submod
+    intro X
+    simp
+    intro a h_mem_a
+    exact h_le a h_mem_a X
+  le_top := by
+    intro A
+    apply le_submod_implies_le_PH_submod
+    intro X
+    exact le_top
+  bot_le := by
+    intro A
+    apply le_submod_implies_le_PH_submod
+    intro X
+    exact bot_le
 
 end Submodules
 
@@ -166,19 +240,20 @@ lemma sSup_eq_top_of_direct_sum_decomposition (D : DirectSumDecomposition M) :
   replace h_mem : x ∈ (⊤ : Submodule K _) := by
     exact h_mem
   have h_contra : x ∈ (⨆ (p : D.S), p.val).mods X := by
+    rw[←sup_comm_mods]
+    /-
     rw [←h_sum] at h_mem; simp [iSup]
     have h_sub : (⨆ (p : D.S), (p.val.mods X)) ≤ sSup {x | ∃ N ∈ D.S, N.mods X = x} := by
+
       rw [sSup_eq_iSup']
       apply iSup_le; intro p
       have h_aux : p.val.mods X ∈ {x | ∃ N ∈ D.S, N.mods X = x} := by
         simp; use p; simp
       let p_aux : {x | ∃ N ∈ D.S, N.mods X = x} := ⟨p.val.mods X, h_aux⟩
       apply le_iSup_of_le p_aux; simp
-    exact h_sub h_mem
+      -/
+    rwa [h_sum]
   exact (h_neq h_contra)
-
-
-
 
 --careful: this means that D₁ refines D₂
 variable {M : FunctCat C K} in
