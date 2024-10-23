@@ -120,6 +120,12 @@ instance : SupSet (PH.Submodule M) where
       rw [Submodule.map_sSup]
       sorry }
 
+lemma iSup_mods_apply {ι : Type*} (x : C) (M : ι → PH.Submodule M) :
+    ⨆ i, (M i).mods x = ⨆ i, ((M i).mods x) := by sorry
+
+lemma sSup_mods_apply (x : C) (S : Set (PH.Submodule M)) :
+    (⨆ (M ∈ S), M.mods) x = ⨆ (M ∈ S), (M.mods x) := by sorry
+
 -- There's a notion of infimums over arbitrary sets of submodules
 @[simp]
 instance : InfSet (PH.Submodule M) where
@@ -225,23 +231,35 @@ structure DirectSumDecomposition where
   -- TODO Paul: FIXME
   -- This needs to change a bit since we're saying that we're summing to M and then to N.
   -- But we can take care of that later on.
-  (h : ∀ (x : C), DirectSum.IsInternal (fun p : S => (p.val.mods x : Submodule _ _)))
+  (h_indep : CompleteLattice.SetIndependent S)
+  (h_top : sSup S = ⊤)
+  --(h : ∀ (x : C), DirectSum.IsInternal (M := M.obj x) (S := Submodule K (M.obj x))
+    --(fun (p : PH.Submodule M) (hp : p ∈ S) => p.mods x))
   (bot_notin : ⊥ ∉ S)
 
-variable {M} in
-lemma sSup_eq_top_of_direct_sum_decomposition (D : DirectSumDecomposition M) :
-    sSup D.S = ⊤ := by
-  apply le_antisymm; simp
-  simp only [LE.le]
-  intro X x h_mem
-  have h_sum := D.h X
-  by_contra h_neq
-  apply DirectSum.IsInternal.submodule_iSup_eq_top at h_sum
-  rw [sSup_eq_iSup'] at h_neq
-  replace h_mem : x ∈ (⊤ : Submodule K _) := by
-    exact h_mem
-  have h_contra : x ∈ (⨆ (p : D.S), p.val).mods X := by
-    rw[←sup_comm_mods]
+lemma DirectSumDecomposition.pointwise_iSup_eq_top (D : DirectSumDecomposition M)
+  (x : C) : ⨆ (p : PH.Submodule M) (_ : p ∈ D.S), p.mods x = ⊤ := sorry
+
+lemma DirectSumDecomposition.pointwise_sSup_eq_top (D : DirectSumDecomposition M)
+  (x : C) : ⨆ (p : PH.Submodule M) (_ : p ∈ D.S), p.mods x = ⊤ := sorry
+
+-- variable {M} in
+-- lemma sSup_eq_top_of_direct_sum_decomposition (D : DirectSumDecomposition M) :
+--     sSup D.S = ⊤ := by
+--   apply le_antisymm; simp
+--   simp only [LE.le]
+--   intro X x h_mem
+--   have h_sum := D.pointwise_sSup_eq_top _ X
+--   by_contra h_neq
+--   apply h_neq
+--   rw [sSup_eq_iSup, sSup_mods_apply _ X D.S]
+--   simp?
+--   apply DirectSum.IsInternal.submodule_iSup_eq_top at h_sum
+--   rw [sSup_eq_iSup'] at h_neq
+--   replace h_mem : x ∈ (⊤ : Submodule K _) := by
+--     exact h_mem
+--   have h_contra : x ∈ (⨆ (p : D.S), p.val).mods X := by
+--     rw[←sup_comm_mods]
     /-
     rw [←h_sum] at h_mem; simp [iSup]
     have h_sub : (⨆ (p : D.S), (p.val.mods X)) ≤ sSup {x | ∃ N ∈ D.S, N.mods X = x} := by
@@ -253,8 +271,8 @@ lemma sSup_eq_top_of_direct_sum_decomposition (D : DirectSumDecomposition M) :
       let p_aux : {x | ∃ N ∈ D.S, N.mods X = x} := ⟨p.val.mods X, h_aux⟩
       apply le_iSup_of_le p_aux; simp
       -/
-    rwa [h_sum]
-  exact (h_neq h_contra)
+  --   rwa [h_sum]
+  -- exact (h_neq h_contra)
 
 --careful: this means that D₁ refines D₂
 variable {M : FunctCat C K} in
@@ -275,7 +293,7 @@ lemma NissSupImage {I : DirectSumDecomposition M}
   {d : I.S → Set (PH.Submodule M)}
   (h_eq : ∀ (B : I.S), B = sSup (d B))
    : ⊤ = ⨆ B, sSup (d B) := by
-  have h_aux : ⊤ = sSup I.S := (sSup_eq_top_of_direct_sum_decomposition I).symm
+  have h_aux : ⊤ = sSup I.S := I.h_top.symm
   have h_supI : ⊤ = ⨆ (B: I.S), B.val := by rwa[sSup_eq_iSup'] at h_aux
   have h_equality : ∀ (B : I.S), id B = (sSup ∘ d) B := by
     simp only [id_eq, h_eq, Function.comp_apply, implies_true]
@@ -291,7 +309,7 @@ lemma RefinementMapSurj (I : DirectSumDecomposition M) (J : DirectSumDecompositi
   {h_sub :  ∀ (B : I.S), d B ⊆ J.S} : (∀ (A : J.S), ∃ (B : I.S), A.val ∈ d B) := by
   by_contra! h_abs
   let f_aux : J.S → _ := fun (A : J.S) => if ∃ B : I.S, A.val ∈ d B then A.val else ⊥
-  have h_dir_sum_J : ⊤ = sSup J.S := (sSup_eq_top_of_direct_sum_decomposition J).symm
+  have h_dir_sum_J : ⊤ = sSup J.S := J.h_top.symm
   have h_dir_sum_d : ⊤ = ⨆ (A : J.S), f_aux A := by
     have h_aux (B : I.S) : sSup (d B) = ⨆ A ∈ d B, A := sSup_eq_iSup
     simp_rw [NissSupImage h_eq]
@@ -470,13 +488,15 @@ variable {M} in
 def DirectSumDecomposition_of_chain {T : Set (DirectSumDecomposition M)} (hT : IsChain
   LE.le T) : DirectSumDecomposition M where
   S := {(Submodule_of_chain hT l) | (l : limit (ChainToTypeCat T)) (_ : ¬ IsBot (Submodule_of_chain hT l))}
-  h := by sorry
+  h_top := by sorry
+  h_indep := by sorry
   bot_notin := sorry
 
 /- The set `𝓤` is an upper bound for the chain `T` -/
 lemma every_chain_has_an_upper_bound (N : PH.Submodule M)
     {T : Set (DirectSumDecomposition M)} (hT : IsChain LE.le T) :
     ∀ D ∈ T, D ≤ DirectSumDecomposition_of_chain hT := by
+  intro D hD
   sorry
 
 /-Every chain has an upper bound, hence there is a maximal direct sum decomposition `D`-/
@@ -496,7 +516,8 @@ section Indecomposable
 -- Alternatively, we could also construct the subfunctor that arises from a submodule
 def TrivialDecomp (N : PH.Submodule M) : DirectSumDecomposition M where
   S := {N}
-  h := by sorry
+  h_indep := by sorry
+  h_top := by sorry
   bot_notin := sorry
 
 /--`M` is indecomposable iff its only non-trivial submodule is the zero submodule `⊥`-/
@@ -520,7 +541,7 @@ lemma Indecomposable_of_mem_Max_Direct_sum_decomposition
   let S : Set (PH.Submodule M) := (D.S \ {N}) ⊔ P.S
   have h (x : C) : DirectSum.IsInternal (fun p : S => (p.val.mods x : Submodule _ _)) := by sorry
   have h' : ⊤ = sSup S := by sorry
-  let Cex : DirectSumDecomposition M := ⟨S, h, sorry⟩
+  let Cex : DirectSumDecomposition M := ⟨S, sorry, sorry, sorry⟩
   have contra : ¬ IsMax D := by sorry
   exact contra hmax
 
@@ -533,7 +554,38 @@ def RefinedDirectSumDecomposition
     (hB'' : ∀ N hN, ⊥ ∉ B N hN) :
     DirectSumDecomposition M where
     S := ⋃ (N) (hN), B N hN
-    h := sorry
+    h_indep := by
+      intro x
+      · intro a b ha hb
+        sorry
+    h_top := by
+      simp_rw [sSup_iUnion]
+      calc
+        ⨆ i, ⨆ (i_1 : i ∈ D.S), sSup (B i i_1) = ⨆ (i) (i_1 : i ∈ D.S), i := by
+          apply iSup_congr
+          intro I
+          by_cases hI : I ∈ D.S
+          · simp only [hB I hI, instSupSetSubmodule, exists_prop]
+          · simp only [hI, instSupSetSubmodule, exists_prop, not_false_eq_true, iSup_neg]
+        _ = ⊤ := by rw [←D.h_top, sSup_eq_iSup]
+
+      -- calc
+      --     ⨆ (p : ⋃ (N) (hN), B N hN), (p.val) = ⨆ (N) (hN) (p) (_ : p ∈ B N hN), p := by
+      --       sorry
+      --     _ = ⨆ (N) (hN), ⨆ (p) (_ : p ∈ B N hN), p := by sorry
+      --     _ = ⨆ (N) (hN), (sSup (B N hN)) := by sorry
+      --     _ = ⨆ (N) (_ : N ∈ D.S), N := by sorry
+      --     _ = (⨆ (N) (_ : N ∈ D.S), N) := by sorry
+      --     _ = ⊤ := by sorry
+    --  calc
+    --       ⨆ (p : ⋃ (N) (hN), B N hN), (p.val.mods x) = ⨆ (N) (hN) (p) (_ : p ∈ B N hN), p.mods x := by
+    --         sorry
+    --       _ = ⨆ (N) (hN), ⨆ (p) (_ : p ∈ B N hN), p.mods x := by sorry
+    --       _ = ⨆ (N) (hN), (sSup (B N hN)).mods x := by sorry
+    --       _ = ⨆ (N) (_ : N ∈ D.S), N.mods x := by sorry
+    --       _ = (⨆ (N) (_ : N ∈ D.S), N).mods x := by sorry
+    --       _ = (⊤ : PH.Submodule M).mods x := by sorry
+    --       _ = ⊤ := by sorry
     bot_notin := sorry
 
 lemma RefinedDirectSumDecomposition_le
@@ -572,6 +624,7 @@ lemma Indecomposable'_of_mem_Min_Direct_sum_decomposition
     intro h
     --This should be easy
     sorry
+  sorry
 
 -- /-- If `N` is a submodule of `M` that is part of a minimal direct sum decomposition, then `N` is indecomposable -/
 -- lemma Indecomposable'_of_mem_Min_Direct_sum_decomposition'
