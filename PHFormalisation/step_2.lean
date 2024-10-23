@@ -546,6 +546,10 @@ lemma Indecomposable_of_mem_Max_Direct_sum_decomposition
   exact contra hmax
 
 variable {M} in
+/--
+If `D` is a direct sum decomposition of `M` and for each `N` appearing in `S` we are given a direct
+sum decomposition of `N`, we can construct a refinement of `D`.
+-/
 def RefinedDirectSumDecomposition
     {D : DirectSumDecomposition M}
     (B : ∀ (N : PH.Submodule M), N ∈ D.S → Set (PH.Submodule M))
@@ -557,6 +561,8 @@ def RefinedDirectSumDecomposition
     h_indep := by
       intro x
       · intro a b ha hb
+        --We need to show that the submodules appearing in the decomposition are independent
+        --might be a little annoying
         sorry
     h_top := by
       simp_rw [sSup_iUnion]
@@ -568,25 +574,11 @@ def RefinedDirectSumDecomposition
           · simp only [hB I hI, instSupSetSubmodule, exists_prop]
           · simp only [hI, instSupSetSubmodule, exists_prop, not_false_eq_true, iSup_neg]
         _ = ⊤ := by rw [←D.h_top, sSup_eq_iSup]
-
-      -- calc
-      --     ⨆ (p : ⋃ (N) (hN), B N hN), (p.val) = ⨆ (N) (hN) (p) (_ : p ∈ B N hN), p := by
-      --       sorry
-      --     _ = ⨆ (N) (hN), ⨆ (p) (_ : p ∈ B N hN), p := by sorry
-      --     _ = ⨆ (N) (hN), (sSup (B N hN)) := by sorry
-      --     _ = ⨆ (N) (_ : N ∈ D.S), N := by sorry
-      --     _ = (⨆ (N) (_ : N ∈ D.S), N) := by sorry
-      --     _ = ⊤ := by sorry
-    --  calc
-    --       ⨆ (p : ⋃ (N) (hN), B N hN), (p.val.mods x) = ⨆ (N) (hN) (p) (_ : p ∈ B N hN), p.mods x := by
-    --         sorry
-    --       _ = ⨆ (N) (hN), ⨆ (p) (_ : p ∈ B N hN), p.mods x := by sorry
-    --       _ = ⨆ (N) (hN), (sSup (B N hN)).mods x := by sorry
-    --       _ = ⨆ (N) (_ : N ∈ D.S), N.mods x := by sorry
-    --       _ = (⨆ (N) (_ : N ∈ D.S), N).mods x := by sorry
-    --       _ = (⊤ : PH.Submodule M).mods x := by sorry
-    --       _ = ⊤ := by sorry
-    bot_notin := sorry
+    bot_notin := by
+      intro h
+      simp_rw [Set.mem_iUnion] at h
+      obtain ⟨N, hN, hbot⟩ := h
+      exact hB'' N hN hbot
 
 lemma RefinedDirectSumDecomposition_le
     {D : DirectSumDecomposition M}
