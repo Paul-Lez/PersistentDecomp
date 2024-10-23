@@ -1,6 +1,6 @@
 import Mathlib.CategoryTheory.Limits.Shapes.ZeroObjects
 import Mathlib.Order.Interval.Basic
-import PHFormalisation.PHFormalisation.Basic_variants
+import PHFormalisation.archive.Basic_variants
   --change this to import the file with the `PersistentModule` definition
 
 open CategoryTheory Classical CategoryTheory.Limits

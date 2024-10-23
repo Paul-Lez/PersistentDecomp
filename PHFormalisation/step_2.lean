@@ -11,7 +11,7 @@ import Mathlib.Algebra.Module.Submodule.Ker
 import Mathlib.CategoryTheory.Preadditive.Injective
 import Mathlib.Order.SetNotation
 import Mathlib.CategoryTheory.Limits.Shapes.ZeroObjects
-import PHFormalisation.PHFormalisation.thm1_1with_decomp_struct
+import PHFormalisation.thm1_1with_decomp_struct
 
 open CategoryTheory Classical CategoryTheory.Limits
 open Filter
