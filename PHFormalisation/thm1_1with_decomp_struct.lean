@@ -155,8 +155,6 @@ structure Subfunctor (R : Type) [DivisionRing R] (C : Type) [Category C]
 --I've also been told there are alternatives way to do this definition on Zulip,
 --to look into.
 
-
-
 --Should this be a def?
 def SubmodDecomp (R : Type) [DivisionRing R] (C : Type) [Category C]
   (M : FunctCat C R) (N₁ : Subfunctor R C M) (N₂ : Subfunctor R C M)
