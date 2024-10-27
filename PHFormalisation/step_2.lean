@@ -121,10 +121,10 @@ instance : SupSet (PH.Submodule M) where
       sorry }
 
 lemma iSup_mods_apply {ι : Type*} (x : C) (M : ι → PH.Submodule M) :
-    ⨆ i, (M i).mods x = ⨆ i, ((M i).mods x) := by sorry
+    ⨆ i, (M i).mods x = ⨆ i, ((M i).mods x) := by simp
 
 lemma sSup_mods_apply (x : C) (S : Set (PH.Submodule M)) :
-    (⨆ (M ∈ S), M.mods) x = ⨆ (M ∈ S), (M.mods x) := by sorry
+    (⨆ (M ∈ S), M.mods) x = ⨆ (M ∈ S), (M.mods x) := by simp
 
 -- There's a notion of infimums over arbitrary sets of submodules
 @[simp]
@@ -226,6 +226,7 @@ end Submodules
 
 section DirectSumDecomposition
 
+@[ext]
 structure DirectSumDecomposition where
   (S : Set (PH.Submodule M))
   -- TODO Paul: FIXME
@@ -236,6 +237,15 @@ structure DirectSumDecomposition where
   --(h : ∀ (x : C), DirectSum.IsInternal (M := M.obj x) (S := Submodule K (M.obj x))
     --(fun (p : PH.Submodule M) (hp : p ∈ S) => p.mods x))
   (bot_notin : ⊥ ∉ S)
+
+lemma DirectSumDecomposition.eq (I J : DirectSumDecomposition M) :
+  I = J ↔ I.S = J.S := by
+  constructor
+  intro h
+  rw [h]
+  intro h
+  ext
+  aesop
 
 lemma DirectSumDecomposition.pointwise_iSup_eq_top (D : DirectSumDecomposition M)
   (x : C) : ⨆ (p : PH.Submodule M) (_ : p ∈ D.S), p.mods x = ⊤ := sorry
@@ -284,6 +294,9 @@ variable {M : FunctCat C K} in
 def IsRefinement' : DirectSumDecomposition M → DirectSumDecomposition M → Prop :=
   fun D₁ D₂ => ∀ N ∈ D₂.S, ∃ B ⊆ D₁.S, N = sSup B
 
+
+
+/-
 --API
 --The goal of these API lemmas is to obtain the proof for the remaining "sorry"
 --in ToTypeCat. In other words, need to show that the d function is surjective.
@@ -369,31 +382,128 @@ lemma RefinementMapSurj (I : DirectSumDecomposition M) (J : DirectSumDecompositi
       apply le_iSup
   have h_aux : ⨆ A, f_aux A < ⊤ := lt_of_lt_of_le h_lt h_le
   simp only [←h_dir_sum_d, ←h_dir_sum_J, lt_self_iff_false] at h_aux
+-/
+
+
+
+variable {M : FunctCat C K} in
+def Obtain_Subset (I : DirectSumDecomposition M) (J : DirectSumDecomposition M)
+  (h_ref : IsRefinement' J I) (N : I.S) : {B : Set (PH.Submodule M) // N = sSup B ∧ B ⊆ J.S} := by
+  let B := Exists.choose (h_ref N.val N.prop)
+  have h_sup : N = sSup B := (Exists.choose_spec (h_ref N.val N.prop)).2
+  use B
+  constructor
+  exact h_sup
+  exact (Exists.choose_spec (h_ref N.val N.prop)).1
+
+
+variable {M : FunctCat C K} in
+lemma RefinementMapSurj' (I : DirectSumDecomposition M) (J : DirectSumDecomposition M)
+  (h : IsRefinement' J I) : (∀ N : J.S, ∃ A : I.S, N.val ≤ A.val) := by
+  by_contra h_contra
+  push_neg at h_contra
+  rcases h_contra with ⟨N₀, h_not_le⟩
+  have h_ge : N₀.val ⊔ sSup I.S ≤ sSup J.S := by
+    rw[←sSup_pair]
+    apply sSup_le_iff.mpr
+    intro b h_mem
+    rcases h_mem with ⟨h_n⟩
+    · exact (le_sSup (h_n ▸ N₀.prop))
+    · rename b ∈ {sSup I.S} => h_i
+      have h' : sSup I.S ≤ sSup J.S := by
+        rw[I.h_top, J.h_top]
+      simp only [Set.mem_singleton_iff] at h_i
+      exact (h_i ▸ h')
+  have h_gt : sSup I.S < N₀.val ⊔ sSup I.S := by
+    sorry
+  have contra : (⊤ : PH.Submodule M) < ⊤ := by
+    rw [I.h_top, J.h_top] at *
+    apply lt_of_lt_of_le h_gt h_ge
+  exact (lt_self_iff_false (⊤ : PH.Submodule M)).mp contra
+
+
 
 instance : Preorder (DirectSumDecomposition M) where
-  le D₁ D₂ := IsRefinement D₁ D₂
-  --D₁ ≤ D₂ iff D₁ refines D₂. This is not the order from the paper, but its dual.
-  le_refl D := by use fun (I : D.S) ↦ {I.val}, by aesop, by aesop
+  le D₁ D₂ := IsRefinement' D₂ D₁
+  --D₁ ≤ D₂ iff D₂ refines D₁.
+  le_refl D := by intro N _; use {N}; aesop
   le_trans I₁ I₂ I₃ h12 h23 := by
-    rcases h12  with ⟨d₁, h₁eq, h₁sub⟩
-    rcases h23 with ⟨d₂, h₂eq, h₂sub⟩
-    let d := fun (A : I₃.S) ↦ {(C) | (C : PH.Submodule M) (_ : ∃ B : I₂.S, C ∈ d₁ B ∧ B.val ∈ d₂ A)}
-    use d, fun A => le_antisymm ?_ ?_, fun A x ⟨a, ⟨B, d, _⟩, c⟩ => Set.mem_of_mem_of_subset (c ▸ d) (h₁sub B)
-    · have h_chara_dA (B : I₂.S) (h_B_im : B.val ∈ d₂ A) (C) (h_C_im : C ∈ (d₁ B)) : C ∈ d A:= by
-        simp only [Subtype.exists, exists_and_right, exists_prop, exists_eq_right, Set.mem_setOf_eq, d]
-        use B
-        simpa only [Subtype.coe_eta, Subtype.coe_prop, exists_const] using ⟨h_C_im, h_B_im⟩
-      apply h₂eq A ▸ sSup_le_iff.mpr (fun B h_B_im => ?_)
-      set B' : I₂.S := ⟨B, Set.mem_of_mem_of_subset h_B_im (h₂sub A)⟩
-      apply h₁eq B' ▸ sSup_le_iff.mpr (fun C h_C_im => (le_sSup (h_chara_dA B' h_B_im C h_C_im)))
-    · apply sSup_le_iff.mpr (fun C h_C_im => ?_)
-      simp only [Subtype.exists, exists_and_right, exists_prop, exists_eq_right, Set.mem_setOf_eq, d] at h_C_im
-      rcases h_C_im with ⟨B, ⟨h_B_in_I2, h_C_im_B⟩, h_B_im⟩
-      apply le_trans (h₁eq ⟨B, h_B_in_I2⟩ ▸ le_sSup h_C_im_B) (h₂eq A ▸ le_sSup h_B_im)
+    intro N h_mem
+    rcases (h12 N h_mem) with ⟨C, h_sub, h_eq⟩
+    let f := fun (c : C) ↦ Obtain_Subset I₂ I₃ h23 (⟨c, h_sub c.prop⟩)
+    let A := ⨆ (c : C), (f c).1
+    use A
+    constructor
+    · apply iSup_le_iff.mpr
+      intro c
+      exact (f c).2.right
+    · have h_aux' : sSup A = sSup C := by
+        apply le_antisymm
+        apply sSup_le_iff.mpr
+        intro a h_a
+        have h_aux'' : ∃ (c : C), a ∈ (f c).val := by aesop
+        rcases h_aux'' with ⟨c_a, h_ca⟩
+        have h_le : a ≤ c_a := by
+          rw[(f c_a).prop.left]
+          apply le_sSup h_ca
+        apply le_sSup_of_le c_a.prop h_le
+        apply sSup_le
+        intro c h_mem_c
+        let c' : C := ⟨c, h_mem_c⟩
+        have h_le_c : c ≤ sSup (f c').1 := by
+          rw[←(f c').2.left]
+        apply le_trans h_le_c
+        apply sSup_le
+        intro a h_mem_a
+        have h_a_in_A : a ∈ A := by
+          have h_subs : (f c').1 ≤ A := by
+            apply le_iSup_of_le c'
+            exact le_rfl
+          exact h_subs h_mem_a
+        exact le_sSup h_a_in_A
+      rwa [h_aux']
+
 
 instance : PartialOrder (DirectSumDecomposition M) where
   --I suspect this will be painful to prove
-  le_antisymm := sorry
+  le_antisymm := by
+    intro I J h_I_le_J h_J_le_I
+    have h_final_left : ∀ N ∈ J.S, N ∈ I.S := by
+      intro N
+      by_contra h_neg
+      push_neg at h_neg
+      rcases h_neg with ⟨h_N_in_J, h_N_not_in_I⟩
+      let N' : J.S := ⟨N, h_N_in_J⟩
+      have h_A : ∃ A : I.S, N ≤ A.val := by
+        exact (RefinementMapSurj' I J h_I_le_J) N'
+      rcases h_A with ⟨A, h_N_le_A⟩
+      let ⟨B, h_B₁, h_B₂⟩ := (Obtain_Subset J I h_J_le_I N')
+      simp only at h_B₁
+      have h_mem : A.val ∈ B := by
+        by_contra h_A_not_mem
+        have h_aux : Disjoint A.val (sSup B) := by
+          exact (CompleteLattice.SetIndependent.disjoint_sSup I.h_indep A.prop h_B₂ h_A_not_mem)
+        have h_aux' : sSup B ≤ A.val := by
+          exact (h_B₁ ▸ h_N_le_A)
+        have h_last : sSup B = (⊥ : PH.Submodule M) := by
+          rw [disjoint_comm] at h_aux
+          exact (Disjoint.eq_bot_of_le h_aux h_aux')
+        rw[←h_B₁] at h_last
+        subst h_last
+        exact (J.bot_notin h_N_in_J)
+      have h_A_le_N : A.val ≤ N := by
+        rw[h_B₁]
+        exact le_sSup h_mem
+      have h_A_eq_N : A.val = N := by
+        exact (le_antisymm h_A_le_N h_N_le_A)
+      have h_contra : N ∈ I.S := by
+        exact h_A_eq_N ▸ A.prop
+      aesop
+    have h_final_right : ∀ N ∈ I.S, N ∈ J.S := by
+      sorry
+    aesop
+
+
 
 
 end DirectSumDecomposition
@@ -409,25 +519,13 @@ variable {M} in
 noncomputable def ToTypeCat : (DirectSumDecomposition M) ⥤ Type where
   obj D := Subtype D.S
   -- Define the maps f_{IJ} induced by "J refines I"
-  -- Since we are working with dual order, we write J I to have J ≤ I
-  map {J I} f := by
+  map {I J} f := by
     dsimp
     let h_le := leOfHom f
-    simp only [LE.le, IsRefinement] at h_le
-    let d := Exists.choose h_le
-    let h_aux : (∀ (B : ↑I.S), ↑B = sSup (d B)) ∧ ∀ (B : ↑I.S), d B ⊆ J.S := by
-      apply Exists.choose_spec h_le
-    rcases h_aux with ⟨hsup, hincl⟩
-    --this should just be RefinementMapSurj
-    let h_le_bis := leOfHom f
-    simp only [LE.le] at h_le_bis
-    let h : ∀ (A : J.S), ∃ (B : I.S), A.val ∈ d B := by
-      apply (RefinementMapSurj I J h_le_bis)
-      exact hsup
-      sorry
-      --exact hincl - causes an infinite loop?
-    let f : J.S → I.S := fun A => (h A).choose
-    exact f
+    let g : J.S → I.S := fun N => (RefinementMapSurj' I J h_le N).choose
+    sorry
+    --exact g is what we want but this is wrong arrow direction
+
 
 /- This is possibly useful to make things a bit cleaner so let's keep it for now but possibly remove it later -/
 variable {M} in
