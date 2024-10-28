@@ -10,6 +10,7 @@ import Mathlib.Data.SetLike.Fintype
 import Mathlib.Algebra.Module.Submodule.Ker
 import Mathlib.CategoryTheory.Preadditive.Injective
 import Mathlib.Order.SetNotation
+import Mathlib.Order.Disjoint
 import Mathlib.CategoryTheory.Limits.Shapes.ZeroObjects
 import PHFormalisation.thm1_1with_decomp_struct
 
@@ -397,6 +398,11 @@ def Obtain_Subset (I : DirectSumDecomposition M) (J : DirectSumDecomposition M)
   exact (Exists.choose_spec (h_ref N.val N.prop)).1
 
 
+
+theorem right_lt_sup_of_left_ne_bot [SemilatticeSup α] [OrderBot α] {a b : α}
+    (h : Disjoint a b) (ha : a ≠ ⊥) : b < a ⊔ b :=
+  le_sup_right.lt_of_ne fun eq ↦ ha (le_bot_iff.mp <| h le_rfl <| sup_eq_right.mp eq.symm)
+
 variable {M : FunctCat C K} in
 lemma RefinementMapSurj' (I : DirectSumDecomposition M) (J : DirectSumDecomposition M)
   (h : IsRefinement' J I) : (∀ N : J.S, ∃ A : I.S, N.val ≤ A.val) := by
@@ -414,12 +420,59 @@ lemma RefinementMapSurj' (I : DirectSumDecomposition M) (J : DirectSumDecomposit
         rw[I.h_top, J.h_top]
       simp only [Set.mem_singleton_iff] at h_i
       exact (h_i ▸ h')
+  let B : Set (PH.Submodule M) := {C | ∃ A : I.S, C ≤ A.val ∧ C ∈ J.S}
+  have h_sub : B ⊆ J.S := by
+    intro C h_C_mem
+    simp [B] at h_C_mem
+    exact h_C_mem.right
+  have h_aux : sSup B = sSup I.S := by
+    apply le_antisymm
+    apply sSup_le
+    intro b h_mem
+    simp [B] at h_mem
+    rcases h_mem with ⟨h₁, _⟩
+    rcases h₁ with ⟨a, h_a, h_le⟩
+    exact (le_sSup_of_le h_a h_le)
+    have h_le_subset : ∀ A : I.S, ∃ C ⊆ B, A ≤ sSup C := by
+      intro A
+      let C' := Obtain_Subset I J h A
+      use C'.val
+      constructor
+      intro α h_α
+      simp [B]
+      constructor
+      use A
+      constructor
+      exact A.prop
+      rw[C'.prop.left]
+      exact (le_sSup h_α)
+      exact (C'.prop.right h_α)
+      rw[←C'.prop.left]
+    apply sSup_le
+    intro A h_A_mem
+    rcases (h_le_subset ⟨A, h_A_mem⟩) with ⟨C, h_C⟩
+    simp only at h_C
+    exact (le_trans h_C.right (sSup_le_sSup h_C.left))
+  have h_aux' : N₀.val ∉ B := by
+    intro h_contra
+    simp [B] at h_contra
+    rcases h_contra with ⟨A, h₁, h₂⟩
+    exact (h_not_le (⟨A, h₁⟩) h₂)
+  have h_disj : Disjoint N₀.val (sSup B) := by
+    exact (CompleteLattice.SetIndependent.disjoint_sSup J.h_indep N₀.prop h_sub h_aux')
+  have h_not_bot : N₀.val ≠ ⊥ := by
+    intro h_contra
+    exact J.bot_notin (h_contra ▸ N₀.prop)
   have h_gt : sSup I.S < N₀.val ⊔ sSup I.S := by
-    sorry
+    rw[←h_aux]
+    --No clue why I couldn't use this theorem from mathlib directly and had to copy paste it here instead
+    --assuming it has to do with needing to bump
+    exact (right_lt_sup_of_left_ne_bot h_disj h_not_bot)
   have contra : (⊤ : PH.Submodule M) < ⊤ := by
     rw [I.h_top, J.h_top] at *
     apply lt_of_lt_of_le h_gt h_ge
   exact (lt_self_iff_false (⊤ : PH.Submodule M)).mp contra
+
 
 
 
