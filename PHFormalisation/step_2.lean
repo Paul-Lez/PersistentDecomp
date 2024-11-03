@@ -57,12 +57,12 @@ def ChainToInverseLimit (T : Set (DirectSumDecomposition M)) :
   Type := limit (ChainToTypeCat T)
 
 
-variable (N : PH.Submodule M) (T : Set (DirectSumDecomposition M)) (l : limit (ChainToTypeCat T))
+variable (N : PersistenceSubmodule M) (T : Set (DirectSumDecomposition M)) (l : limit (ChainToTypeCat T))
 variable (I : Subtype T)
 variable (D : DirectSumDecomposition M)
 #check (limit.π (ChainToTypeCat T)) --this is the morphism L ⟶ ChainToTypeCat.obj I
 #check ((limit.π (ChainToTypeCat T) I) l) -- apply this morphism to l. This has type (ChainToTypeCat T).obj I - other words, Subtype I.val.S
-#check ((limit.π (ChainToTypeCat T) I) l).val --PH.Submodule
+#check ((limit.π (ChainToTypeCat T) I) l).val --PersistenceSubmodule
 #check ((limit.π (ChainToTypeCat T) I) l).prop
 #check (ChainToTypeCat T)
 #check I.val
@@ -72,9 +72,9 @@ variable (D : DirectSumDecomposition M)
 /-Construct `M[λ]` in the notation of our doc -/
 variable {M} in
 noncomputable def Submodule_of_chain {T : Set (DirectSumDecomposition M)}-- (hT : IsChainLE.le T)
-  (l : limit (ChainToTypeCat T)) : PH.Submodule M := by
-  let f : Subtype T → PH.Submodule M := fun (I : Subtype T) ↦ ((limit.π (ChainToTypeCat T) I) l).val
-  let M_l : (PH.Submodule M) := ⨅ (I : Subtype T), f I
+  (l : limit (ChainToTypeCat T)) : PersistenceSubmodule M := by
+  let f : Subtype T → PersistenceSubmodule M := fun (I : Subtype T) ↦ ((limit.π (ChainToTypeCat T) I) l).val
+  let M_l : (PersistenceSubmodule M) := ⨅ (I : Subtype T), f I
   exact M_l
 
 notation3:max M"["l"]" => Submodule_of_chain l
@@ -83,35 +83,34 @@ notation3:max M"["l"]" => Submodule_of_chain l
 variable {M} in
 lemma M_is_dir_sum_lambdas {T : Set (DirectSumDecomposition M)} (hT : IsChain
   LE.le T) (c : C) :
-  DirectSum.IsInternal (fun (l : limit (ChainToTypeCat T)) => ((Submodule_of_chain  l).mods c : Submodule K (M.obj c))) := by
+  DirectSum.IsInternal (fun (l : limit (ChainToTypeCat T)) => ((Submodule_of_chain  l)  c : Submodule K (M.obj c))) := by
   rw [DirectSum.isInternal_iff]
   constructor
   · intro m h_ker
     let Λ I := limit.π (ChainToTypeCat T) I
     obtain ⟨J, hJ⟩ : ∃ (J : T), Pairwise fun l₁ l₂ ↦ Λ J l₁ ≠ Λ J l₂ := by
       sorry
-    have : DirectSum.IsInternal (fun (j : J.val.S) => j.val.mods c) := by
+    have : DirectSum.IsInternal (fun (j : J.val.S) => j.val  c) := by
       sorry
     simp_rw [DirectSum.isInternal_iff, DirectSum.ext_iff K] at this
     --rw [DirectSum.isInternal_iff]
     apply DirectSum.ext (R := K)
     intro i
     simp only [map_zero] at this ⊢
-    obtain ⟨x, hx⟩ := this.right <| m i--(limit.π (ChainToTypeCat T) J i).val.mods c
+    obtain ⟨x, hx⟩ := this.right <| m i--(limit.π (ChainToTypeCat T) J i).val  c
     obtain ⟨j, y, rfl⟩ : ∃ j y, x = DirectSum.of _ j y := by
       sorry
     --simp? [ZeroMemClass.coe_zero, implies_true, DirectSum.of, DFinsupp.singleAddHom] at hx
     --simp?
-    aesop
+    sorry --aesop
     --rw [←this.left]
-    sorry
   · sorry
 
 -- /-`M` is the direct sum of all the `M[λ]` -/
 -- variable {M} in
 -- lemma M_is_dir_sum_lambdas {T : Set (DirectSumDecomposition M)} (hT : IsChain
 --   LE.le T) (x : C) :
---   DirectSum.IsInternal (fun (l : limit (ChainToTypeCat T)) => ((Submodule_of_chain hT l).mods x : Submodule K (M.obj x))) := by
+--   DirectSum.IsInternal (fun (l : limit (ChainToTypeCat T)) => ((Submodule_of_chain hT l)  x : Submodule K (M.obj x))) := by
 --   apply (DirectSum.isInternal_submodule_iff_independent_and_iSup_eq_top _).mpr
 --   constructor
 --   · intro a
@@ -145,14 +144,14 @@ def DirectSumDecomposition_of_chain {T : Set (DirectSumDecomposition M)} (hT : I
   bot_notin := sorry
 
 /- The set `𝓤` is an upper bound for the chain `T` -/
-lemma every_chain_has_an_upper_bound (N : PH.Submodule M)
+lemma every_chain_has_an_upper_bound (N : PersistenceSubmodule M)
     {T : Set (DirectSumDecomposition M)} (hT : IsChain LE.le T) :
     ∀ D ∈ T, D ≤ DirectSumDecomposition_of_chain hT := by
   intro D hD
   sorry
 
 /-Every chain has an upper bound, hence there is a maximal direct sum decomposition `D`-/
-lemma zorny_lemma (N : PH.Submodule M) : ∃ (D : DirectSumDecomposition M), IsMax D := by
+lemma zorny_lemma (N : PersistenceSubmodule M) : ∃ (D : DirectSumDecomposition M), IsMax D := by
   apply zorn_le
   rintro T hT
   rw [bddAbove_def]
@@ -166,7 +165,7 @@ section Indecomposable
 -- For this to work we would need to change the definition of a DirectSumDecompositon
 -- since at the moment it only work for `⊤`.
 -- Alternatively, we could also construct the subfunctor that arises from a submodule
-def TrivialDecomp (N : PH.Submodule M) : DirectSumDecomposition M where
+def TrivialDecomp (N : PersistenceSubmodule M) : DirectSumDecomposition M where
   S := {N}
   h_indep := by sorry
   h_top := by sorry
@@ -179,19 +178,19 @@ variable {M} in
 /--This is the definition of indecomposability we should be using since it's more general
 (works at a lattice theoretic level)-/
 -- TODO: we don't need `a ≤ N` and `b ≤ N` in the implications
-def Indecomposable' (N : PH.Submodule M) : Prop :=
-  ∀ a b : PH.Submodule M, a ≤ N → b ≤ N → a ⊓ b = ⊥ → a ⊔ b = N → a = ⊥ ∨ b = ⊥
+def Indecomposable' (N : PersistenceSubmodule M) : Prop :=
+  ∀ a b : PersistenceSubmodule M, a ≤ N → b ≤ N → a ⊓ b = ⊥ → a ⊔ b = N → a = ⊥ ∨ b = ⊥
 
 -- Maximal direct sum decompositions consist of indecomposable submodules.
 lemma Indecomposable_of_mem_Max_Direct_sum_decomposition
-  (D : DirectSumDecomposition M) (N : PH.Submodule M) (hN : N ∈ D.S) (hmax : IsMax D) :
+  (D : DirectSumDecomposition M) (N : PersistenceSubmodule M) (hN : N ∈ D.S) (hmax : IsMax D) :
   IsMax (TrivialDecomp M N) := by
   by_contra hNotMax
   rw[IsMax] at hNotMax
   push_neg at hNotMax
   rcases hNotMax with ⟨P, hle, hneq⟩
-  let S : Set (PH.Submodule M) := (D.S \ {N}) ⊔ P.S
-  have h (x : C) : DirectSum.IsInternal (fun p : S => (p.val.mods x : Submodule _ _)) := by sorry
+  let S : Set (PersistenceSubmodule M) := (D.S \ {N}) ⊔ P.S
+  have h (x : C) : DirectSum.IsInternal (fun p : S => (p.val  x : Submodule _ _)) := by sorry
   have h' : ⊤ = sSup S := by sorry
   let Cex : DirectSumDecomposition M := ⟨S, sorry, sorry, sorry⟩
   have contra : ¬ IsMax D := by sorry
@@ -204,7 +203,7 @@ sum decomposition of `N`, we can construct a refinement of `D`.
 -/
 def RefinedDirectSumDecomposition
     {D : DirectSumDecomposition M}
-    (B : ∀ (N : PH.Submodule M), N ∈ D.S → Set (PH.Submodule M))
+    (B : ∀ (N : PersistenceSubmodule M), N ∈ D.S → Set (PersistenceSubmodule M))
     (hB : ∀ N hN, N = sSup (B N hN))
     (hB' : ∀ N hN, CompleteLattice.SetIndependent (B N hN))
     (hB'' : ∀ N hN, ⊥ ∉ B N hN) :
@@ -249,7 +248,7 @@ def RefinedDirectSumDecomposition
 
 lemma RefinedDirectSumDecomposition_le
     {D : DirectSumDecomposition M}
-    (B : ∀ (N : PH.Submodule M), N ∈ D.S → Set (PH.Submodule M))
+    (B : ∀ (N : PersistenceSubmodule M), N ∈ D.S → Set (PersistenceSubmodule M))
     (hB : ∀ N hN, N = sSup (B N hN))
     (hB' : ∀ N hN, CompleteLattice.SetIndependent (B N hN))
     (hB'' : ∀ N hN, ⊥ ∉ B N hN) :
@@ -257,21 +256,21 @@ lemma RefinedDirectSumDecomposition_le
 
 lemma RefinedDirectSumDecomposition_lt_of_exists_ne_singleton
     {D : DirectSumDecomposition M}
-    (B : ∀ (N : PH.Submodule M), N ∈ D.S → Set (PH.Submodule M))
+    (B : ∀ (N : PersistenceSubmodule M), N ∈ D.S → Set (PersistenceSubmodule M))
     (hB : ∀ N hN, N = sSup (B N hN))
     (hB' : ∀ N hN, CompleteLattice.SetIndependent (B N hN))
     (hB'' : ∀ N hN, ⊥ ∉ B N hN)
-    (H : ∃ (N : PH.Submodule M) (hN : N ∈ D.S), B N hN ≠ {N}) :
+    (H : ∃ (N : PersistenceSubmodule M) (hN : N ∈ D.S), B N hN ≠ {N}) :
     (RefinedDirectSumDecomposition B hB hB' hB'') < D := sorry
 
 lemma Indecomposable'_of_mem_Min_Direct_sum_decomposition
-  (D : DirectSumDecomposition M) (N : PH.Submodule M) (hN : N ∈ D.S) (hmax : IsMin D) : Indecomposable' N := by
+  (D : DirectSumDecomposition M) (N : PersistenceSubmodule M) (hN : N ∈ D.S) (hmax : IsMin D) : Indecomposable' N := by
   by_contra hNotMax
   rw [Indecomposable'] at hNotMax
   simp only [not_forall, Classical.not_imp, not_or, exists_and_left] at hNotMax
   obtain ⟨x, hx, y, hx', hy', hxy, hxy', hy⟩ := hNotMax
-  set B : ∀ (N : PH.Submodule M), N ∈ D.S → Set (PH.Submodule M) :=
-    fun (M : PH.Submodule M) (hM : M ∈ D.S) => if M = N then {x, y} else {M} with hB
+  set B : ∀ (N : PersistenceSubmodule M), N ∈ D.S → Set (PersistenceSubmodule M) :=
+    fun (M : PersistenceSubmodule M) (hM : M ∈ D.S) => if M = N then {x, y} else {M} with hB
   set newD : DirectSumDecomposition M := RefinedDirectSumDecomposition
     B sorry sorry sorry
   have contra : ¬ IsMin D := by
@@ -287,40 +286,40 @@ lemma Indecomposable'_of_mem_Min_Direct_sum_decomposition
 
 -- /-- If `N` is a submodule of `M` that is part of a minimal direct sum decomposition, then `N` is indecomposable -/
 -- lemma Indecomposable'_of_mem_Min_Direct_sum_decomposition'
---   (D : DirectSumDecomposition M) (N : PH.Submodule M) (hN : N ∈ D.S) (hmax : IsMin D) : Indecomposable' N := by
+--   (D : DirectSumDecomposition M) (N : PersistenceSubmodule M) (hN : N ∈ D.S) (hmax : IsMin D) : Indecomposable' N := by
 --   by_contra hNotMax
 --   rw [Indecomposable'] at hNotMax
 --   simp only [not_forall, Classical.not_imp, not_or, exists_and_left] at hNotMax
 --   obtain ⟨x, hx, y, hx', hy', hxy, hxy', hy⟩ := hNotMax
 --   set newD : DirectSumDecomposition M := RefinedDirectSumDecomposition
---     (fun (M : PH.Submodule M) (hM : M ∈ D.S) => if M = N then {x, y} else {M}) sorry sorry sorry
+--     (fun (M : PersistenceSubmodule M) (hM : M ∈ D.S) => if M = N then {x, y} else {M}) sorry sorry sorry
 
---   set S : Set (PH.Submodule M) := (D.S \ {N}) ∪ {x, y} with hS
---   have h : ∀ (x : C), DirectSum.IsInternal (fun p : S => (p.val.mods x : Submodule _ _)) := by
+--   set S : Set (PersistenceSubmodule M) := (D.S \ {N}) ∪ {x, y} with hS
+--   have h : ∀ (x : C), DirectSum.IsInternal (fun p : S => (p.val  x : Submodule _ _)) := by
 --     intro x'
 --     rw [DirectSum.isInternal_submodule_iff_independent_and_iSup_eq_top]
 --     constructor
 --     · --this is going to be a bit of a pain to prove
 --       intro a b hab hb'
 --       by_cases ha : a = x
---       · have : b ≤ N.mods x' := le_trans (ha ▸ hab) (hx' x')
+--       · have : b ≤ N  x' := le_trans (ha ▸ hab) (hx' x')
 --         --this should now follow from the independence of the direct sum decomposition `D`
---         --have := calc b ≤ (⨆ j, ⨆ (_ : j ≠ a), (fun (p : S) ↦ p.val.mods x') j) := by sorry
---         --_ ≤ (⨆ j, ⨆ (_ : j ≠ a), (fun (p : D.S) ↦ p.val.mods x') j)
+--         --have := calc b ≤ (⨆ j, ⨆ (_ : j ≠ a), (fun (p : S) ↦ p.val  x') j) := by sorry
+--         --_ ≤ (⨆ j, ⨆ (_ : j ≠ a), (fun (p : D.S) ↦ p.val  x') j)
 --         sorry
 --       · by_cases hb : a = y
---         · have : b ≤ N.mods x' := le_trans (hb ▸ hab) (hy' x')
+--         · have : b ≤ N  x' := le_trans (hb ▸ hab) (hy' x')
 --           --this should now follow from the independence of the direct sum decomposition `D`
 --           sorry
 --           --Since the sum is over j ≠ a, it will include `x ⊔ y = N` so we can rewrite it in a nicer way
---         · have : (⨆ j, ⨆ (_ : j ≠ a), (fun (p : S) ↦ p.val.mods x') j) =
---             ⨆ j, ⨆ (_ : j.val ≠ a.val), (fun (p : D.S) => p.val.mods x') j := by
+--         · have : (⨆ j, ⨆ (_ : j ≠ a), (fun (p : S) ↦ p.val  x') j) =
+--             ⨆ j, ⨆ (_ : j.val ≠ a.val), (fun (p : D.S) => p.val  x') j := by
 --             sorry
 --           --this should now follow from the independence of the direct sum decomposition `D`
 --           rw [this] at hb'
 --           sorry
 --       --The direct sum is indexed over all `j` in `S` so we can rewrite it in a nicer way by using `x ⊔ y = N`.
---     · calc (⨆ (p : S), p.val.mods x') = (⨆ (p : D.S), p.val.mods x') := by sorry
+--     · calc (⨆ (p : S), p.val  x') = (⨆ (p : D.S), p.val  x') := by sorry
 --       _ = ⊤ := ((DirectSum.isInternal_submodule_iff_independent_and_iSup_eq_top _).mp <| D.h x').right
 --   let Cex : DirectSumDecomposition M := ⟨S, h, sorry⟩
 --   have contra : ¬ IsMin D := by
@@ -328,7 +327,7 @@ lemma Indecomposable'_of_mem_Min_Direct_sum_decomposition
 --     use Cex
 --     apply lt_of_le_of_ne
 --     --this is very golfable
---     · set d : D.S → Set (PH.Submodule M) := fun (I : D.S) ↦ if I.val = N then {x, y} else {I.val} with hd
+--     · set d : D.S → Set (PersistenceSubmodule M) := fun (I : D.S) ↦ if I.val = N then {x, y} else {I.val} with hd
 --       use d, fun I => ?_, fun I => ?_
 --       · by_cases hI : I.val = N
 --         · simp only [hd, hI, ↓reduceIte, sSup_insert, csSup_singleton, ← hxy']

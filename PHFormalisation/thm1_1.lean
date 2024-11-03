@@ -28,18 +28,18 @@ Step 2:
   d -prove that every chain has an upper bound by constructing the upper bound from the paper
 
 
-a : actually defining a generic product for persistence modules sounds very complicated. 
-Say we have M a persistence module and a large number of submodules indexed by some set 
-S: N_s for all s ∈ S. 
-Then we would need to construct: 
-  -> the (potentially very large) product of the objects N_s.obj x 
-  -> the (potentially very large) product of the morphisms N_s.map α 
+a : actually defining a generic product for persistence modules sounds very complicated.
+Say we have M a persistence module and a large number of submodules indexed by some set
+S: N_s for all s ∈ S.
+Then we would need to construct:
+  -> the (potentially very large) product of the objects N_s.obj x
+  -> the (potentially very large) product of the morphisms N_s.map α
 
-Alternatively, we could create a structure Decomposition M which is simply an alias for 
-a set of submodules of M, without forcing any additional properties on it. 
-This would let us temporarily move forward with the proof without fussing about the 
-exact definition of large products of persistence modules. However, we will need to 
-look into this at some point - it's required to finish the proof of step 2. 
+Alternatively, we could create a structure Decomposition M which is simply an alias for
+a set of submodules of M, without forcing any additional properties on it.
+This would let us temporarily move forward with the proof without fussing about the
+exact definition of large products of persistence modules. However, we will need to
+look into this at some point - it's required to finish the proof of step 2.
 
 -/
 
@@ -85,7 +85,7 @@ def ProductModule (R : Type) [DivisionRing R] (C : Type) [Category C]
 def ProductMapFunc (R : Type) [DivisionRing R] (C : Type) [Category C]
   {X Y : C} (f : (X ⟶ Y)) (F : FunctCat C R) (G : FunctCat C R)
   : ((F.obj X × G.obj X) →ₗ[R] (F.obj Y × G.obj Y)) where
-  toFun x := by
+ toFun x := by
     let x₁ := x.1
     let x₂ := x.2
     exact ⟨F.map f x₁, G.map f x₂⟩

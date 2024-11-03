@@ -36,7 +36,7 @@ def ProductModule (R : Type) [DivisionRing R] (C : Type) [Category C]
 def ProductMapFunc (R : Type) [DivisionRing R] (C : Type) [Category C]
   {X Y : C} (f : (X ⟶ Y)) (F : FunctCat C R) (G : FunctCat C R)
   : ((F.obj X × G.obj X) →ₗ[R] (F.obj Y × G.obj Y)) where
-  toFun x := by
+ toFun x := by
     let x₁ := x.1
     let x₂ := x.2
     exact ⟨F.map f x₁, G.map f x₂⟩
