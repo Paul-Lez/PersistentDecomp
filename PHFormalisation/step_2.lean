@@ -431,8 +431,8 @@ variable (D : DirectSumDecomposition M)
 
 /-Construct `M[λ]` in the notation of our doc -/
 variable {M} in
-noncomputable def Submodule_of_chain {T : Set (DirectSumDecomposition M)} (hT : IsChain
-  LE.le T) (l : limit (ChainToTypeCat T)) : PH.Submodule M := by
+noncomputable def Submodule_of_chain {T : Set (DirectSumDecomposition M)}-- (hT : IsChainLE.le T)
+  (l : limit (ChainToTypeCat T)) : PH.Submodule M := by
   let f : Subtype T → PH.Submodule M := fun (I : Subtype T) ↦ ((limit.π (ChainToTypeCat T) I) l).val
   let M_l : (PH.Submodule M) := ⨅ (I : Subtype T), f I
   exact M_l
@@ -457,6 +457,32 @@ lemma M_is_dir_sum_lambdas {T : Set (DirectSumDecomposition M)} (hT : IsChain
 
     sorry
   · sorry
+notation3:max M"["l"]" => Submodule_of_chain l
+
+-- /-`M` is the direct sum of all the `M[λ]` -/
+-- variable {M} in
+-- lemma M_is_dir_sum_lambdas {T : Set (DirectSumDecomposition M)} (hT : IsChain
+--   LE.le T) (x : C) :
+--   DirectSum.IsInternal (fun (l : limit (ChainToTypeCat T)) => ((Submodule_of_chain hT l).mods x : Submodule K (M.obj x))) := by
+--   apply (DirectSum.isInternal_submodule_iff_independent_and_iSup_eq_top _).mpr
+--   constructor
+--   · intro a
+--     sorry
+--   · sorry
+
+
+/- The `M[λ]` are linearly independent -/
+variable {M} in
+lemma lambdas_indep {T : Set (DirectSumDecomposition M)} (hT : IsChain
+  LE.le T) : CompleteLattice.SetIndependent
+  { M[l] | (l : limit (ChainToTypeCat T)) (_ : ¬ IsBot M[l])} := by
+  sorry
+
+/- The `M[λ]` span `M` -/
+variable {M} in
+lemma sSup_lambdas_eq_top {T : Set (DirectSumDecomposition M)} (hT : IsChain
+  LE.le T) : sSup {M[l] | (l : limit (ChainToTypeCat T)) (_ : ¬ IsBot M[l])} = ⊤ := by
+  sorry
 
 
 
@@ -465,8 +491,8 @@ variable {M} in
 def DirectSumDecomposition_of_chain {T : Set (DirectSumDecomposition M)} (hT : IsChain
   LE.le T) : DirectSumDecomposition M where
   S := {(Submodule_of_chain hT l) | (l : limit (ChainToTypeCat T)) (_ : ¬ IsBot (Submodule_of_chain hT l))}
-  h_top := by sorry
-  h_indep := by sorry
+  h_top := sSup_lambdas_eq_top hT
+  h_indep := lambdas_indep hT
   bot_notin := sorry
 
 /- The set `𝓤` is an upper bound for the chain `T` -/
@@ -536,8 +562,23 @@ def RefinedDirectSumDecomposition
     DirectSumDecomposition M where
     S := ⋃ (N) (hN), B N hN
     h_indep := by
-      intro x
-      · intro a b ha hb
+      intro x hx a ha ha'
+      simp_rw [Set.mem_iUnion] at hx
+      obtain ⟨N, hN, hN'⟩ := hx
+      have lem₁ : a ≤ N := sorry
+      have lem₂ : a ≤ sSup (D.S \ {N}) := sorry
+      refine D.h_indep hN ?_ ?_
+      · apply le_trans ha
+        rw [hB N hN]
+        apply le_sSup hN'
+      · let S := a ⊓
+        apply le_trans ha'
+        calc sSup (⋃ (N) (hN), B N hN \ {x}) = ⨆ (N) (hN), sSup (B N hN \ {x}) := by sorry
+          _ = (⨆ (M) (hM) (_ : M ≠ N), sSup (B M hM)) ⊔ sSup (B N hN \ {x}) := by sorry
+          _ =
+        --apply sSup_le_sSup
+
+#exit
         --We need to show that the submodules appearing in the decomposition are independent
         --might be a little annoying
         sorry
