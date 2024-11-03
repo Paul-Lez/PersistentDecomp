@@ -71,7 +71,7 @@ variable (D : DirectSumDecomposition M)
 
 /-Construct `M[λ]` in the notation of our doc -/
 variable {M} in
-noncomputable def Submodule_of_chain (T : Set (DirectSumDecomposition M))-- (hT : IsChainLE.le T)
+noncomputable def Submodule_of_chain {T : Set (DirectSumDecomposition M)}-- (hT : IsChainLE.le T)
   (l : limit (ChainToTypeCat T)) : PH.Submodule M := by
   let f : Subtype T → PH.Submodule M := fun (I : Subtype T) ↦ ((limit.π (ChainToTypeCat T) I) l).val
   let M_l : (PH.Submodule M) := ⨅ (I : Subtype T), f I
@@ -83,7 +83,7 @@ notation3:max M"["l"]" => Submodule_of_chain l
 variable {M} in
 lemma M_is_dir_sum_lambdas {T : Set (DirectSumDecomposition M)} (hT : IsChain
   LE.le T) (c : C) :
-  DirectSum.IsInternal (fun (l : limit (ChainToTypeCat T)) => ((Submodule_of_chain T l).mods c : Submodule K (M.obj c))) := by
+  DirectSum.IsInternal (fun (l : limit (ChainToTypeCat T)) => ((Submodule_of_chain  l).mods c : Submodule K (M.obj c))) := by
   rw [DirectSum.isInternal_iff]
   constructor
   · intro m h_ker
@@ -92,11 +92,18 @@ lemma M_is_dir_sum_lambdas {T : Set (DirectSumDecomposition M)} (hT : IsChain
       sorry
     have : DirectSum.IsInternal (fun (j : J.val.S) => j.val.mods c) := by
       sorry
-    rw [DirectSum.isInternal_iff] at this
+    simp_rw [DirectSum.isInternal_iff, DirectSum.ext_iff K] at this
+    --rw [DirectSum.isInternal_iff]
     apply DirectSum.ext (R := K)
     intro i
-    simp only [map_zero]
-    --refine this.left ?_
+    simp only [map_zero] at this ⊢
+    obtain ⟨x, hx⟩ := this.right <| m i--(limit.π (ChainToTypeCat T) J i).val.mods c
+    obtain ⟨j, y, rfl⟩ : ∃ j y, x = DirectSum.of _ j y := by
+      sorry
+    --simp? [ZeroMemClass.coe_zero, implies_true, DirectSum.of, DFinsupp.singleAddHom] at hx
+    --simp?
+    aesop
+    --rw [←this.left]
     sorry
   · sorry
 
@@ -132,7 +139,7 @@ variable {M} in
 /-- Get a direct sum out of a chain (this should be the index set 𝓤 in out doc)-/
 def DirectSumDecomposition_of_chain {T : Set (DirectSumDecomposition M)} (hT : IsChain
   LE.le T) : DirectSumDecomposition M where
-  S := {(Submodule_of_chain T l) | (l : limit (ChainToTypeCat T)) (_ : ¬ IsBot (Submodule_of_chain hT l))}
+  S := {(Submodule_of_chain l) | (l : limit (ChainToTypeCat T)) (_ : ¬ IsBot (Submodule_of_chain hT l))}
   h_top := sSup_lambdas_eq_top hT
   h_indep := lambdas_indep hT
   bot_notin := sorry
