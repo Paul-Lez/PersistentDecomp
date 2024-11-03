@@ -1,24 +1,12 @@
-import Mathlib.Algebra.Category.ModuleCat.Abelian
-import Mathlib.Algebra.Module.LinearMap.Basic
 import Mathlib.Algebra.DirectSum.Module
-import Mathlib.CategoryTheory.Limits.Shapes.ZeroObjects
-import Mathlib.Algebra.Module.Prod
-import Mathlib.RingTheory.LocalRing.Basic
-import Mathlib.RingTheory.Artinian
-import Mathlib.LinearAlgebra.Projection
-import Mathlib.Data.SetLike.Fintype
-import Mathlib.Algebra.Module.Submodule.Ker
-import Mathlib.CategoryTheory.Preadditive.Injective
-import Mathlib.Order.SetNotation
-import Mathlib.Order.Disjoint
-import Mathlib.CategoryTheory.Limits.Shapes.ZeroObjects
-import PHFormalisation.thm1_1with_decomp_struct
-import PHFormalisation.Mathlib.Algebra.Module.Submodule.Pointwise
-import PHFormalisation.Mathlib.Algebra.DirectSum.Basic
+import PHFormalisation.DirectSumDecomposition
+
 
 open CategoryTheory Classical CategoryTheory.Limits
 open Filter
 
+
+variable {C : Type} [Category.{0, 0} C] {K : Type} [DivisionRing K] (M : FunctCat C K)
 
 /- In this file we sketch what we'll need to prove to
 get Step 2 done. Most of the work is setting the stage so
@@ -26,354 +14,6 @@ we can apply Zorn's lemma.-/
 
 /- For now we work with types in the 0-th universe. To make the code universe polymorphic we'll need to
 make a few edits below-/
-variable {C : Type} [Category.{0, 0} C] {K : Type} [DivisionRing K] (M : FunctCat C K)
-
-section Submodules
-
-@[ext]
-structure PH.Submodule where
-    (mods (x : C) : Submodule K (M.obj x))
-    /- TODO: add condition that the inclusion of the submodules
-    is compatible with the "transition" maps of the functor M,
-    i.e if we have f : x ⟶ y then the image of `mods x` by `M f` lies
-    in the submodule `mods y`. -/
-    (h_mods : ∀ {x y : C} (f : x ⟶ y), (mods x).map (M.map f) ≤ mods y)
-
--- TODO: make this better.
-@[ext]
-lemma PH.Submodule.ext' {N₁ N₂ : Submodule M} (h :
-  ∀ x, N₁.mods x = N₂.mods x) : N₁ = N₂ := by
-  aesop
-
--- Persistence submodules are ordered by pointwise inclusion
-instance Submod_le : PartialOrder (PH.Submodule M) where
-  le N₁ N₂ := ∀ x, N₁.mods x ≤ N₂.mods x
-  le_refl N := fun x => le_refl _
-  le_trans N₁ N₂ N₃ h h' x := le_trans (h x) (h' x)
-  le_antisymm N₁ N₂ h h' := PH.Submodule.ext' _ (fun x => le_antisymm (h x) (h' x))
-
-/- There's a notion of the supremum of two submodules, given by `⊕`,
-and a notion of an infimum, given by `∩`.-/
-instance : Lattice (PH.Submodule M) where
-  sup N₁ N₂ := {
-    mods := fun x => (N₁.mods x) ⊔ (N₂.mods x)
-    h_mods := by
-      intro x y f
-      rw [Submodule.map_sup]
-      apply sup_le_sup (N₁.h_mods f) (N₂.h_mods f) }
-  le_sup_left a b x := by aesop
-  le_sup_right a b x := by aesop
-  sup_le a b c h h' x := by aesop
-  inf N₁ N₂ := {
-    mods := fun x => (N₁.mods x) ⊓ (N₂.mods x)
-    h_mods := by
-      intro x y f
-      apply le_trans (Submodule.map_inf_le _) (inf_le_inf (N₁.h_mods f) (N₂.h_mods f)) }
-  inf_le_left a b x := by aesop
-  inf_le_right a b x := by aesop
-  le_inf a b c h h' x := by aesop
-
-/- There's a notion of a minimal submodule, namely `0`-/
-instance : OrderBot (PH.Submodule M) where
-  bot := {
-    mods := fun x => ⊥
-    h_mods := by aesop }
-  bot_le N := fun x => bot_le
-
-/- There's a notion of a maximal submodule, namely `M`-/
-instance : OrderTop (PH.Submodule M) where
-  top := {
-    mods := fun x => ⊤
-    h_mods := by aesop }
-  le_top N := fun x => le_top
-
-
--- There's a notion of supremum over arbitrary sets of submodules
-@[simp]
-instance : SupSet (PH.Submodule M) where
-  sSup S := {
-    -- The direct sum over arbitrary sets is just the pointwise direct sum
-    mods := fun x => sSup {(N.mods x) | (N : PH.Submodule M) (_ : N ∈ S)}
-    h_mods := by
-      intro x y f
-      rw [Submodule.map_sSup]
-      sorry }
-
-
--- There's a notion of infimums over arbitrary sets of submodules
-@[simp]
-instance : InfSet (PH.Submodule M) where
-  sInf S := {
-    -- The intersection over arbitrary sets is just the pointwise direct sum
-    mods := fun x => sInf {(N.mods x) | (N : PH.Submodule M) (_ : N ∈ S)}
-    h_mods := by
-      intro x y f
-      apply le_trans (Submodule.map_sInf _ _)
-      apply sInf_le
-      -- Here we're using the compatibility condition on submodules
-      sorry }
-
-
--- If S is a set of PH.Submodule, then ⨆ (p : S), (p.val.mods X) = (⨆ (p : S), p.val).mods X
--- In other words, we can take Sup and mods in whichever order we want.
-lemma mods_iSup {ι : Sort*} (f : ι → PH.Submodule M)
-  : (⨆ i, f i).mods X = ⨆ i, (f i).mods X := by
-  apply eq_of_forall_ge_iff
-  intro c
-  simp
-  simp [iSup]
-
-
-lemma mods_sSup (S : Set (PH.Submodule M))
-  : (sSup S).mods X = ⨆ (N : S), N.val.mods X := by
-  rw [sSup_eq_iSup']
-  exact mods_iSup ..
-
-
--- The sups and infs over possibly infinite sets are compatible with the lattice structure
-instance : CompleteLattice (PH.Submodule M) where
-  le_sSup S A h_mem X := by
-    -- maybe write some API to get rid of these annoying sSups without
-    -- resorting to the simp nuke?
-    simp
-    let A' : {x | ∃ N ∈ S, N.mods X = x} := ⟨A.mods X, by simp; use A⟩
-    apply le_sSup_of_le (A'.prop) (by simp)
-  sSup_le S A h_le X := by
-    simp
-    intro a h_mem_a
-    exact h_le a h_mem_a X
-  sInf_le S A h_mem X := by
-    simp
-    let A' : {x | ∃ N ∈ S, N.mods X = x} := ⟨A.mods X, by simp; use A⟩
-    apply sInf_le_of_le A'.prop
-    rfl
-  le_sInf S A h_le X := by
-    simp
-    intro a h_mem_a
-    exact h_le a h_mem_a X
-  le_top A X := le_top
-  bot_le A X := bot_le
-
-end Submodules
-
-section DirectSumDecomposition
-
-@[ext]
-structure DirectSumDecomposition where
-  (S : Set (PH.Submodule M))
-  -- TODO Paul: FIXME
-  -- This needs to change a bit since we're saying that we're summing to M and then to N.
-  -- But we can take care of that later on.
-  (h_indep : CompleteLattice.SetIndependent S)
-  (h_top : sSup S = ⊤)
-  --(h : ∀ (x : C), DirectSum.IsInternal (M := M.obj x) (S := Submodule K (M.obj x))
-    --(fun (p : PH.Submodule M) (hp : p ∈ S) => p.mods x))
-  (bot_notin : ⊥ ∉ S)
-
-lemma Indep_fun_eq_Indep_set (ι α κ : Type*) [CompleteLattice κ] [CompleteLattice α] :
-  ∀ f : ι → κ → α, CompleteLattice.Independent f ↔ ∀ (k : κ), CompleteLattice.Independent (f · k) := by
-  intro f
-  constructor
-  intro h_indep k
-  simp [CompleteLattice.Independent] at *
-  intro i
-  have h_indep_i := h_indep i
-  rw[Pi.disjoint_iff] at h_indep_i
-  simp_all [iSup_apply]
-  intro h_indep i
-  simp [CompleteLattice.Independent] at h_indep
-  rw[Pi.disjoint_iff]
-  simp_all [iSup_apply]
-
-
-lemma DirectSumDecomposition.pointwise_iSup_eq_top (D : DirectSumDecomposition M)
-  (x : C) : ⨆ (p : PH.Submodule M) (_ : p ∈ D.S), p.mods x = ⊤ := sorry
-
-lemma DirectSumDecomposition.pointwise_sSup_eq_top (D : DirectSumDecomposition M)
-  (x : C) : ⨆ (p : PH.Submodule M) (_ : p ∈ D.S), p.mods x = ⊤ := sorry
-
-
-variable {M : FunctCat C K} in
-lemma DirectSumDecompositionIsInternal (I : DirectSumDecomposition M) :
-  ∀ (x : C), DirectSum.IsInternal (M := M.obj x) (S := Submodule K (M.obj x))
-  (fun (p : I.S) => p.val.mods x) := by
-  intro X
-  rw[DirectSum.isInternal_submodule_iff_independent_and_iSup_eq_top]
-  constructor
-  sorry
-  rw[←mods_iSup, ←sSup_eq_iSup', I.h_top]
-  rfl
-
--- We should probably go for this definition instead of the one above
-variable {M : FunctCat C K} in
-def IsRefinement : DirectSumDecomposition M → DirectSumDecomposition M → Prop :=
-  fun D₁ D₂ => ∀ N ∈ D₂.S, ∃ B ⊆ D₁.S, N = sSup B
-
-
-theorem right_lt_sup_of_left_ne_bot [SemilatticeSup α] [OrderBot α] {a b : α}
-    (h : Disjoint a b) (ha : a ≠ ⊥) : b < a ⊔ b :=
-  le_sup_right.lt_of_ne fun eq ↦ ha (le_bot_iff.mp <| h le_rfl <| sup_eq_right.mp eq.symm)
-
-
-variable {M : FunctCat C K} in
-lemma RefinementMapSurj' (I : DirectSumDecomposition M) (J : DirectSumDecomposition M)
-  (h : IsRefinement J I) : (∀ N : J.S, ∃ A : I.S, N.val ≤ A.val) := by
-  by_contra h_contra
-  push_neg at h_contra
-  rcases h_contra with ⟨N₀, h_not_le⟩
-  have h_ge : N₀.val ⊔ sSup I.S ≤ sSup J.S := by
-    rw[←sSup_pair]
-    apply sSup_le_iff.mpr
-    intro b h_mem
-    rcases h_mem with ⟨h_n⟩
-    · exact (le_sSup (h_n ▸ N₀.prop))
-    · rename b ∈ {sSup I.S} => h_i
-      have h' : sSup I.S ≤ sSup J.S := by
-        rw[I.h_top, J.h_top]
-      simp only [Set.mem_singleton_iff] at h_i
-      exact (h_i ▸ h')
-  let B : Set (PH.Submodule M) := {C | ∃ A : I.S, C ≤ A.val ∧ C ∈ J.S}
-  have h_sub : B ⊆ J.S := by
-    intro C h_C_mem
-    simp [B] at h_C_mem
-    exact h_C_mem.right
-  have h_aux : sSup B = sSup I.S := by
-    apply le_antisymm
-    apply sSup_le
-    intro b h_mem
-    simp [B] at h_mem
-    rcases h_mem with ⟨h₁, _⟩
-    rcases h₁ with ⟨a, h_a, h_le⟩
-    exact (le_sSup_of_le h_a h_le)
-    have h_le_subset : ∀ A : I.S, ∃ C ⊆ B, A ≤ sSup C := by
-      intro A
-      choose f hf hf' using h
-      let C' := f A.val (A.prop)
-      use C'
-      constructor
-      intro α h_α
-      simp [B]
-      constructor
-      use A
-      constructor
-      exact A.prop
-      rw[(hf' A.val A.prop)]
-      exact (le_sSup h_α)
-      exact ((hf A.val A.prop) h_α)
-      rw[←(hf' A.val A.prop)]
-    apply sSup_le
-    intro A h_A_mem
-    rcases (h_le_subset ⟨A, h_A_mem⟩) with ⟨C, h_C⟩
-    simp only at h_C
-    exact (le_trans h_C.right (sSup_le_sSup h_C.left))
-  have h_aux' : N₀.val ∉ B := by
-    intro h_contra
-    simp [B] at h_contra
-    rcases h_contra with ⟨A, h₁, h₂⟩
-    exact (h_not_le (⟨A, h₁⟩) h₂)
-  have h_disj : Disjoint N₀.val (sSup B) := by
-    exact (CompleteLattice.SetIndependent.disjoint_sSup J.h_indep N₀.prop h_sub h_aux')
-  have h_not_bot : N₀.val ≠ ⊥ := by
-    intro h_contra
-    exact J.bot_notin (h_contra ▸ N₀.prop)
-  have h_gt : sSup I.S < N₀.val ⊔ sSup I.S := by
-    rw[←h_aux]
-    --No clue why I couldn't use this theorem from mathlib directly and had to copy paste it here instead
-    --assuming it has to do with needing to bump
-    exact (right_lt_sup_of_left_ne_bot h_disj h_not_bot)
-  have contra : (⊤ : PH.Submodule M) < ⊤ := by
-    rw [I.h_top, J.h_top] at *
-    apply lt_of_lt_of_le h_gt h_ge
-  exact (lt_self_iff_false (⊤ : PH.Submodule M)).mp contra
-
-
-instance : Preorder (DirectSumDecomposition M) where
-  le D₁ D₂ := IsRefinement D₂ D₁
-  --D₁ ≤ D₂ iff D₂ refines D₁.
-  le_refl D := by intro N _; use {N}; aesop
-  le_trans I₁ I₂ I₃ h12 h23 := by
-    intro N h_mem
-    rcases (h12 N h_mem) with ⟨C, h_sub, h_eq⟩
-    choose f hf hf' using h23
-    let A := ⨆ (c : C), (f c.val (h_sub c.prop))
-    use A
-    constructor
-    · apply iSup_le_iff.mpr
-      intro c
-      exact (hf c.val (h_sub c.prop))
-    · have h_aux' : sSup A = sSup C := by
-        apply le_antisymm
-        apply sSup_le_iff.mpr
-        intro a h_a
-        have h_aux'' : ∃ (c : C), a ∈ (f c.val (h_sub c.prop)) := by aesop
-        rcases h_aux'' with ⟨c_a, h_ca⟩
-        have h_le : a ≤ c_a := by
-          rw[hf' c_a _]
-          apply le_sSup h_ca
-        apply le_sSup_of_le c_a.prop h_le
-        apply sSup_le
-        intro c h_mem_c
-        let c' : C := ⟨c, h_mem_c⟩
-        have h_le_c : c ≤ sSup (f c'.val (h_sub c'.prop)) := by
-          rw[← (hf' c'.val (h_sub c'.prop))]
-        apply le_trans h_le_c
-        apply sSup_le
-        intro a h_mem_a
-        have h_a_in_A : a ∈ A := by
-          have h_subs : (f c'.val (h_sub c'.prop)) ≤ A := by
-            apply le_iSup_of_le c'
-            exact le_rfl
-          exact h_subs h_mem_a
-        exact le_sSup h_a_in_A
-      rwa [h_aux']
-
-
-instance : PartialOrder (DirectSumDecomposition M) where
-  --I suspect this will be painful to prove
-  le_antisymm := by
-    intro I J h_I_le_J h_J_le_I
-    have h_final_left : ∀ N ∈ J.S, N ∈ I.S := by
-      intro N
-      by_contra h_neg
-      push_neg at h_neg
-      rcases h_neg with ⟨h_N_in_J, h_N_not_in_I⟩
-      let N' : J.S := ⟨N, h_N_in_J⟩
-      have h_A : ∃ A : I.S, N ≤ A.val := by
-        exact (RefinementMapSurj' I J h_I_le_J) N'
-      rcases h_A with ⟨A, h_N_le_A⟩
-      choose f hf hf' using h_J_le_I
-      let B := f N'.val N'.prop
-      let h_B₁ := hf' N'.val N'.prop
-      let h_B₂ := hf N'.val N'.prop
-      simp only at h_B₁
-      have h_mem : A.val ∈ B := by
-        by_contra h_A_not_mem
-        have h_aux : Disjoint A.val (sSup B) := by
-          exact (CompleteLattice.SetIndependent.disjoint_sSup I.h_indep A.prop h_B₂ h_A_not_mem)
-        have h_aux' : sSup B ≤ A.val := by
-          exact (h_B₁ ▸ h_N_le_A)
-        have h_last : sSup B = (⊥ : PH.Submodule M) := by
-          rw [disjoint_comm] at h_aux
-          exact (Disjoint.eq_bot_of_le h_aux h_aux')
-        rw[←h_B₁] at h_last
-        subst h_last
-        exact (J.bot_notin h_N_in_J)
-      have h_A_le_N : A.val ≤ N := by
-        rw[h_B₁]
-        exact le_sSup h_mem
-      have h_A_eq_N : A.val = N := by
-        exact (le_antisymm h_A_le_N h_N_le_A)
-      have h_contra : N ∈ I.S := by
-        exact h_A_eq_N ▸ A.prop
-      aesop
-    have h_final_right : ∀ N ∈ I.S, N ∈ J.S := by
-      sorry
-    aesop
-
-
-
-
-end DirectSumDecomposition
 
 section Chains
 
@@ -431,33 +71,34 @@ variable (D : DirectSumDecomposition M)
 
 /-Construct `M[λ]` in the notation of our doc -/
 variable {M} in
-noncomputable def Submodule_of_chain {T : Set (DirectSumDecomposition M)}-- (hT : IsChainLE.le T)
+noncomputable def Submodule_of_chain (T : Set (DirectSumDecomposition M))-- (hT : IsChainLE.le T)
   (l : limit (ChainToTypeCat T)) : PH.Submodule M := by
   let f : Subtype T → PH.Submodule M := fun (I : Subtype T) ↦ ((limit.π (ChainToTypeCat T) I) l).val
   let M_l : (PH.Submodule M) := ⨅ (I : Subtype T), f I
   exact M_l
 
-
-
-
-
-
+notation3:max M"["l"]" => Submodule_of_chain l
 
 /-`M` is the direct sum of all the `M[λ]` -/
 variable {M} in
 lemma M_is_dir_sum_lambdas {T : Set (DirectSumDecomposition M)} (hT : IsChain
-  LE.le T) (x : C) :
-  DirectSum.IsInternal (fun (l : limit (ChainToTypeCat T)) => ((Submodule_of_chain hT l).mods x : Submodule K (M.obj x))) := by
-  rw[DirectSum.isInternal_iff]
+  LE.le T) (c : C) :
+  DirectSum.IsInternal (fun (l : limit (ChainToTypeCat T)) => ((Submodule_of_chain T l).mods c : Submodule K (M.obj c))) := by
+  rw [DirectSum.isInternal_iff]
   constructor
   · intro m h_ker
     let Λ I := limit.π (ChainToTypeCat T) I
     obtain ⟨J, hJ⟩ : ∃ (J : T), Pairwise fun l₁ l₂ ↦ Λ J l₁ ≠ Λ J l₂ := by
       sorry
-
+    have : DirectSum.IsInternal (fun (j : J.val.S) => j.val.mods c) := by
+      sorry
+    rw [DirectSum.isInternal_iff] at this
+    apply DirectSum.ext (R := K)
+    intro i
+    simp only [map_zero]
+    --refine this.left ?_
     sorry
   · sorry
-notation3:max M"["l"]" => Submodule_of_chain l
 
 -- /-`M` is the direct sum of all the `M[λ]` -/
 -- variable {M} in
@@ -476,21 +117,22 @@ variable {M} in
 lemma lambdas_indep {T : Set (DirectSumDecomposition M)} (hT : IsChain
   LE.le T) : CompleteLattice.SetIndependent
   { M[l] | (l : limit (ChainToTypeCat T)) (_ : ¬ IsBot M[l])} := by
+  intro a b ha hb hab
   sorry
 
-/- The `M[λ]` span `M` -/
 variable {M} in
+/-- The `M[λ]` span `M` -/
 lemma sSup_lambdas_eq_top {T : Set (DirectSumDecomposition M)} (hT : IsChain
   LE.le T) : sSup {M[l] | (l : limit (ChainToTypeCat T)) (_ : ¬ IsBot M[l])} = ⊤ := by
   sorry
 
 
 
-/- Get a direct sum out of a chain (this should be the index set 𝓤 in out doc)-/
 variable {M} in
+/-- Get a direct sum out of a chain (this should be the index set 𝓤 in out doc)-/
 def DirectSumDecomposition_of_chain {T : Set (DirectSumDecomposition M)} (hT : IsChain
   LE.le T) : DirectSumDecomposition M where
-  S := {(Submodule_of_chain hT l) | (l : limit (ChainToTypeCat T)) (_ : ¬ IsBot (Submodule_of_chain hT l))}
+  S := {(Submodule_of_chain T l) | (l : limit (ChainToTypeCat T)) (_ : ¬ IsBot (Submodule_of_chain hT l))}
   h_top := sSup_lambdas_eq_top hT
   h_indep := lambdas_indep hT
   bot_notin := sorry
