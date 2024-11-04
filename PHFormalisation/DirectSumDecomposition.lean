@@ -1,52 +1,22 @@
 import PHFormalisation.PersistenceSubmodule
-import Mathlib.Algebra.Category.ModuleCat.Abelian
-import Mathlib.Algebra.Module.LinearMap.Basic
-import Mathlib.Algebra.DirectSum.Module
-import Mathlib.CategoryTheory.Limits.Shapes.ZeroObjects
-import Mathlib.Algebra.Module.Prod
-import Mathlib.RingTheory.LocalRing.Basic
-import Mathlib.RingTheory.Artinian
-import Mathlib.LinearAlgebra.Projection
-import Mathlib.Data.SetLike.Fintype
-import Mathlib.Algebra.Module.Submodule.Ker
-import Mathlib.CategoryTheory.Preadditive.Injective
-import Mathlib.Order.SetNotation
-import Mathlib.Order.Disjoint
-import Mathlib.CategoryTheory.Limits.Shapes.ZeroObjects
+import PHFormalisation.Mathlib.Order.Disjoint
 import PHFormalisation.thm1_1with_decomp_struct
-import PHFormalisation.Mathlib.Algebra.Module.Submodule.Pointwise
-import PHFormalisation.Mathlib.Algebra.DirectSum.Basic
 
 open CategoryTheory Classical CategoryTheory.Limits
-open Filter
 
-variable {C : Type} [Category.{0, 0} C] {K : Type} [DivisionRing K] (M : FunctCat C K)
+variable {C : Type} [Category.{0, 0} C] {K : Type} [DivisionRing K] {M : FunctCat C K}
 
 section DirectSumDecomposition
 
+variable (M) in
 @[ext]
 structure DirectSumDecomposition where
-  (S : Set (PersistenceSubmodule M))
-  (h_indep : CompleteLattice.SetIndependent S)
-  (h_top : sSup S = ⊤)
+  S : Set (PersistenceSubmodule M)
+  h_indep : CompleteLattice.SetIndependent S
+  h_top : sSup S = ⊤
   --(h : ∀ (x : C), DirectSum.IsInternal (M := M.obj x) (S := Submodule K (M.obj x))
     --(fun (p : PersistenceSubmodule M) (hp : p ∈ S) => p  x))
-  (bot_notin : ⊥ ∉ S)
-
-lemma Indep_fun_eq_Indep_set (ι α κ : Type*) [CompleteLattice κ] [CompleteLattice α] :
-  ∀ f : ι → κ → α, CompleteLattice.Independent f ↔ ∀ (k : κ), CompleteLattice.Independent (f · k) := by
-  intro f
-  constructor
-  intro h_indep k
-  simp [CompleteLattice.Independent] at *
-  intro i
-  have h_indep_i := h_indep i
-  rw[Pi.disjoint_iff] at h_indep_i
-  simp_all [iSup_apply]
-  intro h_indep i
-  simp [CompleteLattice.Independent] at h_indep
-  rw[Pi.disjoint_iff]
-  simp_all [iSup_apply]
+  not_bot_mem : ⊥ ∉ S
 
 
 lemma DirectSumDecomposition.pointwise_iSup_eq_top (D : DirectSumDecomposition M)
@@ -56,16 +26,13 @@ lemma DirectSumDecomposition.pointwise_sSup_eq_top (D : DirectSumDecomposition M
   (x : C) : ⨆ (p : PersistenceSubmodule M) (_ : p ∈ D.S), p  x = ⊤ := sorry
 
 
-variable {M : FunctCat C K} in
-lemma DirectSumDecompositionIsInternal (I : DirectSumDecomposition M) :
-  ∀ (x : C), DirectSum.IsInternal (M := M.obj x) (S := Submodule K (M.obj x))
-  (fun (p : I.S) => p.val  x) := by
-  intro X
-  rw[DirectSum.isInternal_submodule_iff_independent_and_iSup_eq_top]
+lemma DirectSumDecompositionIsInternal (I : DirectSumDecomposition M) (c : C) :
+    DirectSum.IsInternal (M := M.obj c) (S := Submodule K (M.obj c)) fun p : I.S ↦ p.val c := by
+  rw [DirectSum.isInternal_submodule_iff_independent_and_iSup_eq_top]
   constructor
   sorry
   sorry
-  --rw[←iSup_apply, ←sSup_eq_iSup', I.h_top]
+  --rw [←iSup_apply, ←sSup_eq_iSup', I.h_top]
   --rfl
 
 -- We should probably go for this definition instead of the one above
@@ -74,26 +41,21 @@ def IsRefinement : DirectSumDecomposition M → DirectSumDecomposition M → Pro
   fun D₁ D₂ => ∀ N ∈ D₂.S, ∃ B ⊆ D₁.S, N = sSup B
 
 
-theorem right_lt_sup_of_left_ne_bot [SemilatticeSup α] [OrderBot α] {a b : α}
-    (h : Disjoint a b) (ha : a ≠ ⊥) : b < a ⊔ b :=
-  le_sup_right.lt_of_ne fun eq ↦ ha (le_bot_iff.mp <| h le_rfl <| sup_eq_right.mp eq.symm)
-
 
 variable {M : FunctCat C K} in
 lemma RefinementMapSurj' (I : DirectSumDecomposition M) (J : DirectSumDecomposition M)
-  (h : IsRefinement J I) : (∀ N : J.S, ∃ A : I.S, N.val ≤ A.val) := by
-  by_contra h_contra
-  push_neg at h_contra
+  (h : IsRefinement J I) : ∀ N : J.S, ∃ A : I.S, N.val ≤ A.val := by
+  by_contra! h_contra
   rcases h_contra with ⟨N₀, h_not_le⟩
   have h_ge : N₀.val ⊔ sSup I.S ≤ sSup J.S := by
-    rw[←sSup_pair]
+    rw [←sSup_pair]
     apply sSup_le_iff.mpr
     intro b h_mem
     rcases h_mem with ⟨h_n⟩
     · exact (le_sSup (h_n ▸ N₀.prop))
     · rename b ∈ {sSup I.S} => h_i
       have h' : sSup I.S ≤ sSup J.S := by
-        rw[I.h_top, J.h_top]
+        rw [I.h_top, J.h_top]
       simp only [Set.mem_singleton_iff] at h_i
       exact (h_i ▸ h')
   let B : Set (PersistenceSubmodule M) := {C | ∃ A : I.S, C ≤ A.val ∧ C ∈ J.S}
@@ -121,15 +83,15 @@ lemma RefinementMapSurj' (I : DirectSumDecomposition M) (J : DirectSumDecomposit
       use A
       constructor
       exact A.prop
-      rw[(hf' A.val A.prop)]
+      rw [(hf' A.val A.prop)]
       exact (le_sSup h_α)
       exact ((hf A.val A.prop) h_α)
-      rw[←(hf' A.val A.prop)]
+      rw [←(hf' A.val A.prop)]
     apply sSup_le
     intro A h_A_mem
-    rcases (h_le_subset ⟨A, h_A_mem⟩) with ⟨C, h_C⟩
+    rcases h_le_subset ⟨A, h_A_mem⟩ with ⟨C, h_C⟩
     simp only at h_C
-    exact (le_trans h_C.right (sSup_le_sSup h_C.left))
+    exact le_trans h_C.right (sSup_le_sSup h_C.left)
   have h_aux' : N₀.val ∉ B := by
     intro h_contra
     simp [B] at h_contra
@@ -139,9 +101,9 @@ lemma RefinementMapSurj' (I : DirectSumDecomposition M) (J : DirectSumDecomposit
     exact (CompleteLattice.SetIndependent.disjoint_sSup J.h_indep N₀.prop h_sub h_aux')
   have h_not_bot : N₀.val ≠ ⊥ := by
     intro h_contra
-    exact J.bot_notin (h_contra ▸ N₀.prop)
+    exact J.not_bot_mem (h_contra ▸ N₀.prop)
   have h_gt : sSup I.S < N₀.val ⊔ sSup I.S := by
-    rw[←h_aux]
+    rw [←h_aux]
     --No clue why I couldn't use this theorem from mathlib directly and had to copy paste it here instead
     --assuming it has to do with needing to bump
     exact (right_lt_sup_of_left_ne_bot h_disj h_not_bot)
@@ -164,7 +126,7 @@ instance : Preorder (DirectSumDecomposition M) where
     constructor
     · apply iSup_le_iff.mpr
       intro c
-      exact (hf c.val (h_sub c.prop))
+      exact hf c.val (h_sub c.prop)
     · have h_aux' : sSup A = sSup C := by
         apply le_antisymm
         apply sSup_le_iff.mpr
@@ -172,14 +134,14 @@ instance : Preorder (DirectSumDecomposition M) where
         have h_aux'' : ∃ (c : C), a ∈ (f c.val (h_sub c.prop)) := by aesop
         rcases h_aux'' with ⟨c_a, h_ca⟩
         have h_le : a ≤ c_a := by
-          rw[hf' c_a _]
+          rw [hf' c_a _]
           apply le_sSup h_ca
         apply le_sSup_of_le c_a.prop h_le
         apply sSup_le
         intro c h_mem_c
         let c' : C := ⟨c, h_mem_c⟩
         have h_le_c : c ≤ sSup (f c'.val (h_sub c'.prop)) := by
-          rw[← (hf' c'.val (h_sub c'.prop))]
+          rw [← (hf' c'.val (h_sub c'.prop))]
         apply le_trans h_le_c
         apply sSup_le
         intro a h_mem_a
@@ -219,11 +181,11 @@ instance : PartialOrder (DirectSumDecomposition M) where
         have h_last : sSup B = (⊥ : PersistenceSubmodule M) := by
           rw [disjoint_comm] at h_aux
           exact (Disjoint.eq_bot_of_le h_aux h_aux')
-        rw[←h_B₁] at h_last
+        rw [←h_B₁] at h_last
         subst h_last
-        exact (J.bot_notin h_N_in_J)
+        exact (J.not_bot_mem h_N_in_J)
       have h_A_le_N : A.val ≤ N := by
-        rw[h_B₁]
+        rw [h_B₁]
         exact le_sSup h_mem
       have h_A_eq_N : A.val = N := by
         exact (le_antisymm h_A_le_N h_N_le_A)
@@ -235,5 +197,3 @@ instance : PartialOrder (DirectSumDecomposition M) where
     aesop
 
 end DirectSumDecomposition
-
-#min_imports

@@ -42,10 +42,10 @@ def ProductMapFunc (R : Type) [DivisionRing R] (C : Type) [Category C]
     exact ⟨F.map f x₁, G.map f x₂⟩
   map_add' x y := by
     dsimp
-    rw[LinearMap.map_add (F.map f) _ _, LinearMap.map_add (G.map f) _ _]
+    rw [LinearMap.map_add (F.map f) _ _, LinearMap.map_add (G.map f) _ _]
   map_smul' c x := by
     dsimp
-    rw[LinearMap.map_smul (F.map f) _ _, LinearMap.map_smul (G.map f) _ _]
+    rw [LinearMap.map_smul (F.map f) _ _, LinearMap.map_smul (G.map f) _ _]
 
 --Same as above, but written with the ProductModule objects for simplicity
 @[simp]

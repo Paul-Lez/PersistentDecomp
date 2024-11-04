@@ -2,11 +2,11 @@ import Lake
 open Lake DSL
 
 package "PH_formalisation" where
-  -- Settings applied to both builds and interactive editing
   leanOptions := #[
-    ⟨`pp.unicode.fun, true⟩ -- pretty-prints `fun a ↦ b`
-  ]
-  -- add any additional package configuration options here
+    ⟨`autoImplicit, false⟩, -- prevents typos to be interpreted as new free variables
+    ⟨`relaxedAutoImplicit, false⟩, -- prevents typos to be interpreted as new free variables
+    ⟨`pp.unicode.fun, true⟩, -- pretty-prints `fun a ↦ b`
+    ⟨`pp.proofs.withType, false⟩]
 
 require "leanprover-community" / "mathlib"
 
