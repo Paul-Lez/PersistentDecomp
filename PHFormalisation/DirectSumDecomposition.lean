@@ -65,7 +65,7 @@ lemma DirectSumDecompositionIsInternal (I : DirectSumDecomposition M) :
   constructor
   sorry
   sorry
-  --rw[←mods_iSup, ←sSup_eq_iSup', I.h_top]
+  --rw[←iSup_apply, ←sSup_eq_iSup', I.h_top]
   --rfl
 
 -- We should probably go for this definition instead of the one above

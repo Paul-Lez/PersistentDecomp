@@ -11,70 +11,91 @@ we can apply Zorn's lemma.-/
 
 /- For now we work with types in the 0-th universe. To make the code universe polymorphic we'll need to
 make a few edits below-/
-variable {C : Type} [Category.{0, 0} C] {K : Type} [DivisionRing K] (M : FunctCat C K)
+variable {C : Type} [Category.{0, 0} C] {K : Type} [DivisionRing K] {M : FunctCat C K}
 
-@[ext]
+variable (M) in
 structure PersistenceSubmodule where
-    (toFun (c : C) : Submodule K (M.obj c))
+    toFun (c : C) : Submodule K (M.obj c)
     /- TODO: add condition that the inclusion of the submodules
     is compatible with the "transition" maps of the functor M,
     i.e if we have f : x ⟶ y then the image of `toFun x` by `M f` lies
     in the submodule `toFun y`. -/
-    (h_mods : ∀ {x y : C} (f : x ⟶ y), (toFun x).map (M.map f) ≤toFun y)
+    map_le' {x y : C} (f : x ⟶ y) : (toFun x).map (M.map f) ≤ toFun y
 
 namespace PersistenceSubmodule
 
-instance : DFunLike (PersistenceSubmodule M) C (fun c => Submodule K (M.obj c)) where
+instance :
+    DFunLike (PersistenceSubmodule M) C fun c ↦ Submodule K (M.obj c) where
   coe := toFun
-  coe_injective' := sorry
+  coe_injective' N₁ N₂ := by cases N₁; cases N₂; congr!
 
--- TODO: make this better.
+lemma map_le {x y : C} (N : PersistenceSubmodule M) (f : x ⟶ y) :
+    (N x).map (M.map f) ≤ N y := N.map_le' _
+
 @[ext]
-lemma ext' {N₁ N₂ : PersistenceSubmodule M} (h :
-  ∀ x, N₁  x = N₂  x) : N₁ = N₂ := by
-  sorry
+lemma ext {N₁ N₂ : PersistenceSubmodule M} (h : ∀ c, N₁ c = N₂ c) : N₁ = N₂ :=
+  DFunLike.ext _ _ h
 
---Persistence submodules are ordered by pointwise inclusion
-instance Submod_le : PartialOrder (PersistenceSubmodule M) where
-  le N₁ N₂ := ∀ x, N₁ x ≤ N₂ x
-  le_refl N := fun x => le_refl _
-  le_trans N₁ N₂ N₃ h h' x := le_trans (h x) (h' x)
-  le_antisymm N₁ N₂ h h' := PersistenceSubmodule.ext' _ (fun x => le_antisymm (h x) (h' x))
+/-- Persistence submodules are ordered pointwise. -/
+instance : PartialOrder (PersistenceSubmodule M) :=
+  PartialOrder.lift (⇑) DFunLike.coe_injective
 
-/- There's a notion of the supremum of two submodules, given by `⊕`,
-and a notion of an infimum, given by `∩`.-/
-instance : Lattice (PersistenceSubmodule M) where
+instance : Sup (PersistenceSubmodule M) where
   sup N₁ N₂ := {
-    toFun := fun x => (N₁  x) ⊔ (N₂  x)
-    h_mods := by
+    toFun := fun c ↦ N₁ c ⊔ N₂ c
+    map_le' := by
       intro x y f
       rw [Submodule.map_sup]
-      apply sup_le_sup (N₁.h_mods f) (N₂.h_mods f) }
-  le_sup_left a b x :=sorry -- by aesop
-  le_sup_right a b x := sorry --by aesop
-  sup_le a b c h h' x := sorry --by aesop
-  inf N₁ N₂ := {
-    toFun := fun x => (N₁  x) ⊓ (N₂  x)
-    h_mods := by
-      intro x y f
-      apply le_trans (Submodule.map_inf_le _) (inf_le_inf (N₁.h_mods f) (N₂.h_mods f)) }
-  inf_le_left a b x := sorry --by aesop
-  inf_le_right a b x := sorry --by aesop
-  le_inf a b c h h' x := sorry --by aesop
+      apply sup_le_sup (N₁.map_le f) (N₂.map_le f) }
 
-/- There's a notion of a minimal submodule, namely `0`-/
+instance : Inf (PersistenceSubmodule M) where
+  inf N₁ N₂ := {
+    toFun := fun c ↦ N₁ c ⊓ N₂ c
+    map_le' := by
+      intro x y f
+      apply le_trans (Submodule.map_inf_le _)
+        (inf_le_inf (N₁.map_le f) (N₂.map_le f)) }
+
+@[simp, norm_cast]
+lemma coe_sup (N₁ N₂ : PersistenceSubmodule M) : ⇑(N₁ ⊔ N₂) = ⇑N₁ ⊔ ⇑N₂ := rfl
+
+@[simp, norm_cast]
+lemma coe_inf (N₁ N₂ : PersistenceSubmodule M) : ⇑(N₁ ⊓ N₂) = ⇑N₁ ⊓ ⇑N₂ := rfl
+
+lemma sup_apply (N₁ N₂ : PersistenceSubmodule M) (c : C) :
+    (N₁ ⊔ N₂) c = N₁ c ⊔ N₂ c := rfl
+
+lemma inf_apply (N₁ N₂ : PersistenceSubmodule M) (c : C) :
+    (N₁ ⊓ N₂) c = N₁ c ⊓ N₂ c := rfl
+
+/-- There's a notion of the supremum of two submodules, given by `⊕`,
+and a notion of an infimum, given by `∩`. -/
+instance : Lattice (PersistenceSubmodule M) :=
+  DFunLike.coe_injective.lattice _ coe_sup coe_inf
+
+/-- There's a notion of a minimal persistence submodule, namely `0`. -/
 instance : OrderBot (PersistenceSubmodule M) where
   bot := {
-    toFun := fun x => ⊥
-    h_mods := by aesop }
-  bot_le N := fun x => bot_le
+    toFun := ⊥
+    map_le' := by simp }
+  bot_le N c := bot_le
 
-/- There's a notion of a maximal submodule, namely `M`-/
+/-- There's a notion of a maximal persistence submodule, namely `M`. -/
 instance : OrderTop (PersistenceSubmodule M) where
   top := {
-    toFun := fun x => ⊤
-    h_mods := by aesop }
-  le_top N := fun x => le_top
+    toFun := ⊤
+    map_le' := by simp }
+  le_top N c := le_top
+
+@[simp, norm_cast]
+lemma coe_top : ⇑(⊤ : PersistenceSubmodule M) = ⊤ := rfl
+
+@[simp, norm_cast]
+lemma coe_bot : ⇑(⊥ : PersistenceSubmodule M) = ⊥ := rfl
+
+lemma top_apply (c : C) : (⊤ : PersistenceSubmodule M) c = ⊤ := rfl
+
+lemma bot_apply (c : C) : (⊥ : PersistenceSubmodule M) c = ⊥ := rfl
 
 
 -- There's a notion of supremum over arbitrary sets of submodules
@@ -83,7 +104,7 @@ instance : SupSet (PersistenceSubmodule M) where
   sSup S := {
     -- The direct sum over arbitrary sets is just the pointwise direct sum
     toFun := fun x => sSup {(N  x) | (N : PersistenceSubmodule M) (_ : N ∈ S)}
-    h_mods := by
+    map_le' := by
       intro x y f
       rw [Submodule.map_sSup]
       sorry }
@@ -94,8 +115,8 @@ instance : SupSet (PersistenceSubmodule M) where
 instance : InfSet (PersistenceSubmodule M) where
   sInf S := {
     -- The intersection over arbitrary sets is just the pointwise direct sum
-    toFun := fun x => sInf {(N  x) | (N : PersistenceSubmodule M) (_ : N ∈ S)}
-    h_mods := by
+    toFun := fun c ↦ sInf {N c | (N : PersistenceSubmodule M) (_ : N ∈ S)}
+    map_le' := by
       intro x y f
       apply le_trans (Submodule.map_sInf _ _)
       apply sInf_le
@@ -105,19 +126,16 @@ instance : InfSet (PersistenceSubmodule M) where
 
 -- If S is a set of PersistenceSubmodule, then ⨆ (p : S), (p.val  X) = (⨆ (p : S), p.val)  X
 -- In other words, we can take Sup and toFun in whichever order we want.
-lemma mods_iSup {ι : Sort*} (f : ι → PersistenceSubmodule M)
-  : (⨆ i, f i)  X = ⨆ i, (f i)  X := by
+lemma iSup_apply {ι : Sort*} (f : ι → PersistenceSubmodule M) (c : C) :
+    (⨆ i, f i) c = ⨆ i, f i c := by
   apply eq_of_forall_ge_iff
   intro c
   simp
-  simp [iSup]
   sorry
 
-
-lemma mods_sSup (S : Set (PersistenceSubmodule M))
-  : (sSup S)  X = ⨆ (N : S), N.val  X := by
+lemma sSup_apply (S : Set (PersistenceSubmodule M)) (c : C) : (sSup S c) = ⨆ (N : S), N.val c := by
   rw [sSup_eq_iSup']
-  exact mods_iSup ..
+  exact iSup_apply ..
 
 
 -- The sups and infs over possibly infinite sets are compatible with the lattice structure
