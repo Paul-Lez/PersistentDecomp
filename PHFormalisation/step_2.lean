@@ -71,32 +71,43 @@ lemma isInternal_chainBound (hT : IsChain LE.le T) (c : C) : IsInternal fun l : 
     simp [DFinsupp.lapply, component, -ZeroMemClass.coe_eq_zero] at this ⊢
     let e : (⨁ j : J.val, j.val c) ≃ₗ[K] M.obj c :=
       .ofBijective (DirectSum.coeLinearMap _) (J.1.isInternal _)
+    let proj : (⨁ l', M[l']_[c]) →ₗ[K] (Λ J l).val c :=
+      (Submodule.inclusion <| chainBound_le ..).comp <| component _ _ _ l
     calc
-      (m l : M.obj c) = e.symm (m.sum fun j ↦ Subtype.val) (Λ J l) := by
-        rw [map_dfinsupp_sum]
-        erw [DFinsupp.sum_apply]
-        rw [AddSubmonoidClass.coe_dfinsuppSum]
-        sorry
-      _ = e.symm (x.sum fun j ↦ Subtype.val) (Λ J l) := congr(e.symm $hx.symm (Λ J l))
-      _ = x.sum (fun j y ↦ e.symm (e <| DFinsupp.single j y)) (Λ J l) := by
-        rw [map_dfinsupp_sum]
-        congr! with j y
-        simp [e, coeLinearMap, toModule, DFinsupp.lsum]
-      _ = (x (Λ J l)).val := by
-        congr
-        ext j : 1
-        simp only [DFinsupp.lsingle_apply, LinearEquiv.symm_apply_apply, DFinsupp.single_zero,
-          implies_true, Finset.sum_apply]
-        erw [DFinsupp.sum_apply]
-        rw [DFinsupp.sum, Finset.sum_eq_single j]
-        simp
+      (m l : M.obj c) = m.sum fun l' x ↦ proj (DFinsupp.single l' x) := by
+        rw [DFinsupp.sum, Finset.sum_eq_single l]
+        · simp [proj, ← apply_eq_component]
+        · rintro l' _ hl'
+          simp [proj, ← apply_eq_component, hl']
         · simp (config := { contextual := true })
-        · simp (config := { contextual := true })
-      _ = (0 : (Λ J l).val c) := by
-        congr
-        refine this.1 _ ?_ _ _
-        rw [hx, hm]
-      _ = 0 := by simp
+      _ = component K (L T) (fun l' ↦ M[l']_[c]) l (m.sum fun l' x ↦ DFinsupp.single l' x) := by
+        rw [map_dfinsupp_sum, AddSubmonoidClass.coe_dfinsuppSum]
+        -- congr! 2 with x l'!
+
+      -- _ = component K (L T) (fun l' ↦ M[l']_[c]) l (m.sum fun l' ↦ Subtype.val) := by
+      --   rw [map_dfinsupp_sum]
+
+
+      -- _ = e.symm (x.sum fun j ↦ Subtype.val) (Λ J l) := congr(e.symm $hx.symm (Λ J l))
+      -- _ = x.sum (fun j y ↦ e.symm (e <| DFinsupp.single j y)) (Λ J l) := by
+      --   rw [map_dfinsupp_sum]
+      --   congr! with j y
+      --   simp [e, coeLinearMap, toModule, DFinsupp.lsum]
+      -- _ = (x (Λ J l)).val := by
+      --   congr
+      --   ext j : 1
+      --   simp only [DFinsupp.lsingle_apply, LinearEquiv.symm_apply_apply, DFinsupp.single_zero,
+      --     implies_true, Finset.sum_apply]
+      --   erw [DFinsupp.sum_apply]
+      --   rw [DFinsupp.sum, Finset.sum_eq_single j]
+      --   simp
+      --   · simp (config := { contextual := true })
+      --   · simp (config := { contextual := true })
+      -- _ = (0 : (Λ J l).val c) := by
+      --   congr
+      --   refine this.1 _ ?_ _ _
+      --   rw [hx, hm]
+      -- _ = 0 := by simp
   · sorry
 
 /-- The `M[λ]` are linearly independent -/

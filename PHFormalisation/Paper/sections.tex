@@ -1,0 +1,179 @@
+
+
+\chapter{The Persistence Module Decomposition Theorem}
+
+\section{Survey of existing proofs}
+
+There are three main proofs to the persistence module decomposition theorem: 
+
+\begin{enumerate}
+	\item The original proof from Carlsson, Zomorodian, Collins and Guibas from \textit{Persistence Barcodes for Shapes}, written in 2004. This proof holds in the case of persistence modules over $\N$.  
+	\item Crawley-Boevey's first proof in his book \textit{Decomposition of pointwise finite-dimensional persistence modules} (2014). This proof extends the decomposition to the wider setting of pointwise-finite persistence modules over a totally ordered indexing set. 
+	\item A later proof from Botnan and Crawley-Boevey in \textit{Decomposition of Persistence Modules} (2019). This proof is the most general of the three, and it is a direct consequence of the paper's main result, stating that pointwise finite-dimensional persistence module indexed over a small category decompose into a direct sum of indecomposables with local endomorphism rings.
+\end{enumerate}
+
+For our purposes I believe we should go with either proof [1] or [3]. [1] is the most commonly mentioned in the literature, and would likely be the easiest to implement, but it is limited in scope. The literature is also rather unclear as to whether or not the structure theorem for finitely generated modules over a principal ideal domain is sufficient to obtain the result, or if we need the stronger - and, from asking in Zulip, currently unimplemented - structure theorem for f.g modules over a \textit{graded} PID. 
+
+[3] has the widest scope and remarkably requires no particularly complex results; only the Fitting Lemma, Zorn's Lemma and generalities about inverse limits. However, it is still a bit more complex than [1], and some parts of the proof I felt might take more effort to justify properly than the paper lets on. 
+
+[2] has, in my opinion, little interest for us. It is comparable in complexity to [3] while having a smaller scope, and it is a bit of a notational labyrinth. It does not seem to offer any strong advantages over the other two. 
+
+
+With these considerations in mind, I dissected the proofs [1] and [3] into chunks for the purpose of implementation. The next sections go into detail about each of them. 
+
+
+
+\section{Carlsson et al.}
+
+The references consulted for this section are \textit{Categorification of Persistent Homology} (Bubenik and Scott) and \textit{Interleaved Equivalence of Categories of Persistence Modules} (Vejdemo-Johansson). The original paper only has a passing reference to the proof and little detail.  \\
+
+Suppose that we are working over some base field $\FF$. The idea of this proof is to show there exists an equivalence of categories between $\persn$ and the category of graded $\FF[t]$-modules, written $\catname{GrMod}$. 
+
+\begin{remark}
+	Need to ask if this category is implemented into Lean yet, or if we would need to establish that fact, too. 
+\end{remark}
+
+\begin{description}
+	\item[Step 1:] Construct the functor $F \colon \persn \rightarrow \catname{GrMod}$. \\
+	\noindent Let $M, N$ be some persistence module in $\persn$ and $\eta : M \rightarrow N$ a natural transformation. Then define: 
+	\begin{itemize}
+		\item The action of $F$ on $M$: 
+		\begin{equation*}
+			F(M) = \bigoplus_{n = 0}^{\infty} M(n).
+		\end{equation*}
+		Prove that this is an $\FF[t]$-module when we endow it with the following action:
+		\begin{equation*}
+			t \cdot (m_0, m_1 \ldots) = (0, M(0 \leq 1) (m_0), M(1 \leq 2) (m_1) \ldots) 
+		\end{equation*}
+		\item The action of $F$ on $\eta$:
+		\begin{equation*}
+			F (\eta) : 
+			\begin{dcases}
+				F(M) \rightarrow F(N) \\
+				(m_i)_{i \in \N} \mapsto (\eta_i (m_i))_{i \in \N}
+			\end{dcases}
+		\end{equation*}
+		where $\eta_i$ is the component of $\eta$ mapping $M(i)$ to $N(i)$. Prove that this map is indeed a graded module morphism. 
+		\item Prove that $F$ maps identity to identity. 
+		\item Prove that $F$ is functorial with respect to composition of natural transformations.  
+	\end{itemize}
+	
+	\item[Step 2:] Construct the inverse functor to $F$: $G : \catname{GrMod} \rightarrow \persn$. \\
+		\noindent Let $V, W$ be graded modules over $\FF[t]$ with components $V_i, W_i$ and $\ell : V \rightarrow W$ a linear map between graded modules. Then: 
+		\begin{itemize}
+			\item $G$ maps $V$ to a persistence module $G(V)$ defined by: 
+			\begin{equation*}
+				\begin{dcases}
+					G(V) (i \in \N) = V_i \\
+					G(V) (i \leq j) = (v_i \in V_i \mapsto t^{j-i} \cdot v \in V_j).
+				\end{dcases}
+			\end{equation*}
+			We need to prove that this is indeed a persistence module, so in particular, that $G(V)(i)$ is an $\FF$-vector space for all $i$, that the maps are linear, that identity is mapped to identity, that composition is mapped to composition, and finally that 
+			\begin{equation*}
+				G(V) (j \leq k) \circ G(V) (i \leq j) = G(V) (i \leq k).
+			\end{equation*}
+			\item The action of $G$ on $\ell$. For some $i \leq j \in \N$:
+			\begin{equation*}
+				G (\ell) (i) : 
+				\begin{dcases}
+					G(V) (i) \rightarrow G(W) (i) \\
+					(g_i \in G(V)(i)) \mapsto (0, \ldots, \ell (g_i), 0, \ldots)
+				\end{dcases}
+			\end{equation*}
+			We need to prove that this is a natural transformation between persistence modules, which means proving that the following diagram commutes: \\
+			\begin{center}
+				\begin{tikzcd}
+					G(V)(i) \arrow[r, "G(\ell)(i)"] \arrow[d, "G(V)(i \leq j)"'] & G(W)(i) \arrow[d, "G(W)(i \leq j)"] \\
+					G(V)(j) \arrow[r, "G(\ell)(j)"']                             & G(W)(j)                            
+				\end{tikzcd}
+			\end{center}
+			\item Prove that $G$ maps identity to identity;
+			\item Prove that $G$ is functorial with respect to composition of natural morphisms.  
+		\end{itemize}
+	\item[Step 3:] Prove that $F$ and $G$ are inverse functors. This should be simple since their composition is equal to the identity. 
+	\item[Step 4:] Apply the structure theorem of f.g. modules over a (graded?) PID and conclude. This will involve proving that the indecomposable modules in $\catname{GrMod}$ are mapped by the category equivalence to interval modules, and vice-versa. 
+\end{description}
+
+
+
+
+
+
+\section{Botnan and Crawley-Boevey}
+
+The first goal is to prove theorem 1.1, which asserts the following: any pointwise finite-dimensional persistence module (over an arbitrary small category) is a direct sum of indecomposable modules with local endomorphism ring.
+
+\begin{description}
+	\item[Step 1:] Suppose that $M$ is a pointwise finite-dimensional indecomposable persistence module. Prove that $\surelynottaken{M}$ is a local ring. \textit{(This is a simple algebraic proof with a use of the Fitting Lemma.)}
+	\item[Step 2:] Dropping the condition that $M$ is indecomposable, prove that $M$ decomposes as a direct sum of indecomposable modules. 
+	\begin{itemize}
+		 \item Define $D$ the set of decompositions of $M$ into direct sums of non-zero submodules. \textit{(Remark: in the paper, an element $E$ of $D$ is a subset of $S$, the set of all non-zero submodules of $M$. I believe this definition creates problems if the same module appears multiple times in a decomposition, and rigorously $E$ should be allowed to contain duplicate elements.)}
+		 \item Equip $D$ with the order given by refinements: if $I, J \in D$, then $I \leq J$ if and only if each module in $I$ is a direct sum of elements in $J$.
+		 \item Define the functions $f_{IJ} : J \rightarrow I$ which to an element $N$ in $J$ associate the element of $I$ in whose decomposition $N$ appears. 
+		 \item For a chain $T$ in $D$, consider the inverse limit given by the $f_{IJ}$:
+		 \begin{equation*}
+		 	L = \varprojlim_{I \in T} I .
+		 \end{equation*}
+		 Suppose $I, J$ are elements of $T$ such that $I \leq J$. Then we have the following commutative diagram.
+		 \begin{center}
+		 	\begin{tikzcd}[scale=2.0]
+		 		& L \arrow[ld, "\pi_I"] \arrow[rd, "\pi_J"'] &                        \\
+		 		I &                                            & J \arrow[ll, "f_{IJ}"]
+		 	\end{tikzcd}
+		 \end{center}
+		 \item For $\lambda \in L$ define the module
+		 \begin{equation*}
+		 	M(\lambda) = \bigcap_{I \in T} \pi_I (\lambda).
+		 \end{equation*}
+		 \item Prove that 
+		 \begin{equation*}
+		 	M = \bigoplus_{\lambda \in L} M(\lambda).
+		 \end{equation*}
+		 \item Define 
+		 \begin{equation*}
+		 	U = \{ M(\lambda) \colon \lambda \in L, \; M(\lambda) \neq 0\}
+		 \end{equation*}
+		 and prove that it is an upper bound for $T$. This concludes this step. 
+	\end{itemize}
+	\item[Step 3:] All that remains to do is prove that in the case of a totally ordered set $S$, an indecomposable persistence module $M : S \rightarrow \catname{Vect}$ is isomorphic to an interval module. In the following, let $P$ be a partially ordered set and $I$ a subset of $P$. Call $I$ an ideal if $p \in I$ and $q \geq p$ implies $q \in I$. Call it directed if for all $p,q \in I$ there exists $c \in I$ such that $p,q \leq c$, and call it codirected if this holds for $\geq$. Write $k_I$ the interval module for $I$ with values in a field $k$.
+	\begin{itemize}
+		\item Prove Lemma 2.1: let $I \subset P$ be a directed ideal. Then $k_I : P \rightarrow \catname{Vect}$ is an injective persistence module (that is to say, every monomorphism with domain $k_I$ splits.)
+		\item Prove Lemma 2.2: Suppose $P$ is codirected and let $M$ be a pointwise finite persistence module over $P$ with $M_p \neq 0$ for all $p \in P$, and suppose that 
+		$M_p \rightarrow M_q$ is injective for $p \leq q$. Then there is a monomorphism $k_P \hookrightarrow M$. In particular, if $P$ is also codirected, then $M$ has a copy 
+		of $k_P$ as a direct summand. Lemma 2.3 is a direct consequence of Lemma 2.2. 
+		\item Conclude with the proof of theorem 1.2. \textit{(This seems simple enough that I did not feel the need to detail it further, but I might have missed something...)}
+		
+	\end{itemize}
+	
+I believe it is likely possible to simplify step 3 if we stick to $\R$; we might be able to obtain a simpler proof that all indecomposable modules over $(R, \leq)$ are interval modules, which would make the conclusion very simple. 
+\end{description}
+
+On page 6, in Section 3: Decomposition, you write the following: "if $\alpha : x \rightarrow y$ is a morphism in $\mathcal{C}$ then $M_{\alpha} \theta_x = \theta_y M_{\alpha}$. Moreover $M_{\alpha}$ sends $M'_x$ to $M'_y$ and $M''_x$ to $M''_y$."
+The argument for this relies on being able to pick a parameter $n$ large enough for decompositions of both $M_x$ and $M_y$. 
+This is of course doable when we are only considering two elements in $\mathcal{C}$. But this needs to hold for any 
+morphism $\alpha : x \rightarrow z$ for all $z \in \mathcal{C}$, so we potentially need an $n$ large enough for the decomposition of 
+infinitely many $M_z$ at once. How do we know that a finite $n$ satisfying this condition exists?  
+
+\newpage 
+
+Writing $M = M' \oplus M''$ implies that, in particular, for all $\alpha : x \rightarrow y$, we have:
+\begin{equation*}
+	M_{\alpha} = M'_{\alpha} \oplus M''_{\alpha}
+\end{equation*}
+where $M''$ is the persistence module given by: 
+\begin{equation*}
+	 M'' : 
+	\begin{dcases}
+		M''_x &= \ker (\theta_x^{n_x}) \\
+		M''_{\alpha} &= \restr{M_{\alpha}}{ \ker (\theta_x^{n_x})}  
+	\end{dcases}
+\end{equation*}
+where $n_x$ is given by Fitting's Lemma, and a priori depends on $x$. 
+In order for $M''$ to be a well defined persistence module, we need to have $M''_{\alpha} : 	M''_x \rightarrow 	M''_y$, so in other words we need to have that 
+\begin{equation*}
+	M''_{\alpha} (\ker (\theta_x^{n_x})) \subset \ker (\theta_y^{n_y}).
+\end{equation*}
+In the paper this is solved by picking $n_x = n_y = n$ large enough to obtain valid decompositions at both $x$ and $y$. If we let $m_y$ be the smallest integer for which Fitting's lemma gives a decomposition $M_y = \ker (\theta_y^{m_y}) \oplus \Imm (\theta_y^{m_y})$ we then obtain the condition $n_x \geq m_y$. 
+A similar condition must hold for any morphism $\alpha : x \rightarrow z \in \mathcal{C}$. In particular, this seems to me like it could yield a set of conditions of the form $n_x \geq m, \forall m \in \N$ in which case the proof no longer works.
+
+
