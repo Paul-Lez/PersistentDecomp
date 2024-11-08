@@ -31,7 +31,8 @@ noncomputable def ToTypeCat : DirectSumDecomposition M ⥤ Type where
     sorry
     --exact g is what we want but this is wrong arrow direction
 
-/- This is possibly useful to make things a bit cleaner so let's keep it for now but possibly remove it later -/
+/-- This is possibly useful to make things a bit cleaner so let's keep it for now but possibly
+remove it later -/
 noncomputable def Pone (T : Set (DirectSumDecomposition M)) : T ⥤ Type where
   obj D := ToTypeCat.obj D.val
   map {J I} f := ToTypeCat.map f
@@ -55,59 +56,19 @@ notation3:max "M["l"]_[" c "]" => chainBound l c
 lemma chainBound_le : M[l] ≤ (Λ I l).val := iInf_le ..
 
 /-- `M` is the direct sum of all the `M[λ]`. -/
-lemma isInternal_chainBound (hT : IsChain LE.le T) (c : C) : IsInternal fun l : L T => M[l]_[c] := by
+lemma isInternal_chainBound (hT : IsChain LE.le T) (c : C) : IsInternal fun l : L T ↦ M[l]_[c] := by
   rw [isInternal_iff]
   constructor
   · intro m hm
-    obtain ⟨J, hJ⟩ : ∃ J : T, Pairwise fun l₁ l₂ ↦ Λ J l₁ ≠ Λ J l₂ := by
+    obtain ⟨J, hJ⟩ : ∃ J : T, (m.support : Set (L T)).InjOn (Λ J) := by
       sorry
     have : IsInternal fun j : J.val ↦ j.val c := J.1.isInternal _
-    simp_rw [isInternal_iff, ext_iff K] at this
-    apply ext (R := K)
-    obtain ⟨x, hx⟩ := this.2 (m.sum fun j ↦ Subtype.val)
-    intro l
-    simp only [map_zero] at this ⊢
-    ext
-    simp [DFinsupp.lapply, component, -ZeroMemClass.coe_eq_zero] at this ⊢
-    let e : (⨁ j : J.val, j.val c) ≃ₗ[K] M.obj c :=
-      .ofBijective (DirectSum.coeLinearMap _) (J.1.isInternal _)
-    let proj : (⨁ l', M[l']_[c]) →ₗ[K] (Λ J l).val c :=
-      (Submodule.inclusion <| chainBound_le ..).comp <| component _ _ _ l
-    calc
-      (m l : M.obj c) = m.sum fun l' x ↦ proj (DFinsupp.single l' x) := by
-        rw [DFinsupp.sum, Finset.sum_eq_single l]
-        · simp [proj, ← apply_eq_component]
-        · rintro l' _ hl'
-          simp [proj, ← apply_eq_component, hl']
-        · simp (config := { contextual := true })
-      _ = component K (L T) (fun l' ↦ M[l']_[c]) l (m.sum fun l' x ↦ DFinsupp.single l' x) := by
-        rw [map_dfinsupp_sum, AddSubmonoidClass.coe_dfinsuppSum]
-        -- congr! 2 with x l'!
-
-      -- _ = component K (L T) (fun l' ↦ M[l']_[c]) l (m.sum fun l' ↦ Subtype.val) := by
-      --   rw [map_dfinsupp_sum]
-
-
-      -- _ = e.symm (x.sum fun j ↦ Subtype.val) (Λ J l) := congr(e.symm $hx.symm (Λ J l))
-      -- _ = x.sum (fun j y ↦ e.symm (e <| DFinsupp.single j y)) (Λ J l) := by
-      --   rw [map_dfinsupp_sum]
-      --   congr! with j y
-      --   simp [e, coeLinearMap, toModule, DFinsupp.lsum]
-      -- _ = (x (Λ J l)).val := by
-      --   congr
-      --   ext j : 1
-      --   simp only [DFinsupp.lsingle_apply, LinearEquiv.symm_apply_apply, DFinsupp.single_zero,
-      --     implies_true, Finset.sum_apply]
-      --   erw [DFinsupp.sum_apply]
-      --   rw [DFinsupp.sum, Finset.sum_eq_single j]
-      --   simp
-      --   · simp (config := { contextual := true })
-      --   · simp (config := { contextual := true })
-      -- _ = (0 : (Λ J l).val c) := by
-      --   congr
-      --   refine this.1 _ ?_ _ _
-      --   rw [hx, hm]
-      -- _ = 0 := by simp
+    refine DFinsupp.ext fun l ↦ ?_
+    ext : 1
+    by_cases hl : l ∈ m.support
+    · exact this.eq_zero_of_subsingleton_preimage (Λ J) (fun l ↦ m l) m.support hJ
+        (fun l ↦ chainBound_le _ _ _ (m l).2) hm hl
+    · simpa using hl
   · sorry
 
 /-- The `M[λ]` are linearly independent -/
@@ -236,7 +197,8 @@ lemma RefinedDirectSumDecomposition_lt_of_exists_ne_singleton
     (RefinedDirectSumDecomposition B hB hB' hB'') < D := sorry
 
 lemma Indecomposable'_of_mem_Min_Direct_sum_decomposition
-  (D : DirectSumDecomposition M) (N : PersistenceSubmodule M) (hN : N ∈ D) (hmax : IsMin D) : Indecomposable' N := by
+    (D : DirectSumDecomposition M) (N : PersistenceSubmodule M) (hN : N ∈ D) (hmax : IsMin D) :
+    Indecomposable' N := by
   by_contra hNotMax
   rw [Indecomposable'] at hNotMax
   simp only [not_forall, Classical.not_imp, not_or, exists_and_left] at hNotMax
