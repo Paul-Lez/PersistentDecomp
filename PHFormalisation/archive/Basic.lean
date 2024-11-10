@@ -182,7 +182,7 @@ noncomputable def IntervalModule (a b : ℝ) (F : Type) [DivisionRing F]
     --why, but it's not hard to do.
     dsimp
     intro m z
-    rw[map_smul]
+    rw [map_smul]
   map_id := by sorry
   map_comp := by sorry
 

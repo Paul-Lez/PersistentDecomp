@@ -91,10 +91,10 @@ def ProductMapFunc (R : Type) [DivisionRing R] (C : Type) [Category C]
     exact ⟨F.map f x₁, G.map f x₂⟩
   map_add' x y := by
     dsimp
-    rw[LinearMap.map_add (F.map f) _ _, LinearMap.map_add (G.map f) _ _]
+    rw [LinearMap.map_add (F.map f) _ _, LinearMap.map_add (G.map f) _ _]
   map_smul' c x := by
     dsimp
-    rw[LinearMap.map_smul (F.map f) _ _, LinearMap.map_smul (G.map f) _ _]
+    rw [LinearMap.map_smul (F.map f) _ _, LinearMap.map_smul (G.map f) _ _]
 
 --Same as above, but written with the ProductModule objects for simplicity
 @[simp]
@@ -141,7 +141,7 @@ theorem ExistsFittingfit (R : Type) [DivisionRing R] (M : ModuleCat R)
   use n
   have h₁ : ((LinearMap.ker (f ^ n) × range (f ^ n)) ≃ₗ[R] M) := by
     apply Submodule.prodEquivOfIsCompl (ker (f ^ n)) (range (f ^ n)) (h_n)
-  rw[IsIsomorphic]
+  rw [IsIsomorphic]
   exact h₁
 -/
 
@@ -422,15 +422,15 @@ instance EndRingIsRing (R : Type) [DivisionRing R] (C : Type) [Category C]
 
 @[simp]
 lemma PowEqCompLeft (θ : EndRing C R F) (n : ℕ) : θ^(n+1) = θ ≫ (θ^n) := by
-  rw[←MulDef]
+  rw [←MulDef]
   rfl
 
 @[simp]
 lemma PowEqCompRight (θ : EndRing C R F) (n : ℕ) : θ^(n+1) = (θ^n) ≫ θ := by
-  rw[←MulDef]
+  rw [←MulDef]
   have h : n = (n+1)-1 := by simp
   nth_rewrite 2 [h]
-  rw[mul_pow_sub_one]
+  rw [mul_pow_sub_one]
   simp
 
 variable (θ : EndRing C R F) (n : ℕ)
@@ -488,9 +488,9 @@ theorem Step3_1 (M : PtwiseFinitePersMod C R) (α : X ⟶ Y) (n : ℕ)
   (hnat : M.to_functor.map α ≫ (ηy^n) = (ηx^n) ≫ M.to_functor.map α)
   : ∀ (x : (LinearMap.ker (ηx ^ n))), (M.to_functor.map (α) ≫ (ηy ^ n)) x = 0 := by
   intro x
-  rw[hnat]
+  rw [hnat]
   dsimp
-  rw[LinearMap.map_coe_ker]
+  rw [LinearMap.map_coe_ker]
   simp
 
 
@@ -508,9 +508,9 @@ theorem Step3_2 (M : PtwiseFinitePersMod C R) (α : X ⟶ Y) (n : ℕ)
     apply Exists.choose_spec hmem
   use (M.to_functor.map α ≫ (ηy^n)) z
   constructor
-  · rw[hnat]
+  · rw [hnat]
     dsimp
-    rw[hz]
+    rw [hz]
   · dsimp
     apply LinearMap.mem_range.mpr
     use ((M.to_functor.map α) z)
