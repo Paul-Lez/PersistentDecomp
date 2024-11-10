@@ -1,3 +1,12 @@
--- This module serves as the root of the `PHFormalisation` library.
--- Import modules here that should be built as part of the library.
---import PHFormalisation.Basic
+import PHFormalisation.BumpFunctor
+import PHFormalisation.DirectSumDecomposition
+import PHFormalisation.Mathlib.Algebra.DirectSum.Basic
+import PHFormalisation.Mathlib.Algebra.Module.Submodule.Map
+import PHFormalisation.Mathlib.Data.DFinsupp.Basic
+import PHFormalisation.Mathlib.Order.Disjoint
+import PHFormalisation.Mathlib.Order.Interval.Basic
+import PHFormalisation.Mathlib.Order.SupIndep
+import PHFormalisation.Prereqs.Indecomposable
+import PHFormalisation.Prereqs.PersistenceSubmodule
+import PHFormalisation.step_2
+import PHFormalisation.thm1_1

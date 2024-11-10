@@ -1,5 +1,6 @@
 import Mathlib.Algebra.Category.ModuleCat.Basic
-import PHFormalisation.Mathlib.Algebra.Module.Submodule.Pointwise
+import Mathlib.Algebra.Module.Submodule.Range
+import PHFormalisation.Mathlib.Algebra.Module.Submodule.Map
 
 /-!
 # Persistence Submodules
@@ -38,16 +39,16 @@ lemma ext {N₁ N₂ : PersistenceSubmodule M} (h : ∀ c, N₁ c = N₂ c) : N�
 /-- Persistence submodules are ordered pointwise. -/
 instance : PartialOrder (PersistenceSubmodule M) := PartialOrder.lift (⇑) DFunLike.coe_injective
 
-instance : Sup (PersistenceSubmodule M) where
-  sup N₁ N₂ := {
+instance : Max (PersistenceSubmodule M) where
+  max N₁ N₂ := {
     toFun := fun c ↦ N₁ c ⊔ N₂ c
     map_le' := by
       intro c d f
       rw [Submodule.map_sup]
       apply sup_le_sup (N₁.map_le f) (N₂.map_le f) }
 
-instance : Inf (PersistenceSubmodule M) where
-  inf N₁ N₂ := {
+instance : Min (PersistenceSubmodule M) where
+  min N₁ N₂ := {
     toFun := fun c ↦ N₁ c ⊓ N₂ c
     map_le' := by
       intro c d f

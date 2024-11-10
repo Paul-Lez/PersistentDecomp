@@ -6,9 +6,9 @@ variable {ι M S : Type*} [DecidableEq ι] [AddCommGroup M] [SetLike S M] [AddSu
   {A : ι → S}
 
 lemma isInternal_iff [DecidableEq M] :
-  IsInternal A ↔
-    (∀ x : ⨁ i, A i, x.sum (fun i y ↦ (y : M)) = 0 → x = 0) ∧
-      ∀ b : M, ∃ a : ⨁ i, A i, (DFinsupp.sum a fun i x ↦ x) = b := by
+    IsInternal A ↔
+      (∀ x : ⨁ i, A i, x.sum (fun _i y ↦ (y : M)) = 0 → x = 0) ∧
+        ∀ b : M, ∃ a : ⨁ i, A i, (DFinsupp.sum a fun _i x ↦ x) = b := by
   rw [DirectSum.IsInternal]
   rw [Function.Bijective, Function.Surjective]
   rw [← AddMonoidHom.ker_eq_bot_iff]
