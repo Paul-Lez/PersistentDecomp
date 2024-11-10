@@ -1,6 +1,6 @@
 import Mathlib.CategoryTheory.Limits.Types
-import PHFormalisation.DirectSumDecomposition
-import PHFormalisation.Mathlib.Algebra.DirectSum.Basic
+import PersistentDecomp.DirectSumDecomposition
+import PersistentDecomp.Mathlib.Algebra.DirectSum.Basic
 
 open CategoryTheory Classical CategoryTheory.Limits DirectSum DirectSumDecomposition
 

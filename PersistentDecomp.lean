@@ -1,0 +1,12 @@
+import PersistentDecomp.BumpFunctor
+import PersistentDecomp.DirectSumDecomposition
+import PersistentDecomp.Mathlib.Algebra.DirectSum.Basic
+import PersistentDecomp.Mathlib.Algebra.Module.Submodule.Map
+import PersistentDecomp.Mathlib.Data.DFinsupp.Basic
+import PersistentDecomp.Mathlib.Order.Disjoint
+import PersistentDecomp.Mathlib.Order.Interval.Basic
+import PersistentDecomp.Mathlib.Order.SupIndep
+import PersistentDecomp.Prereqs.Indecomposable
+import PersistentDecomp.Prereqs.PersistenceSubmodule
+import PersistentDecomp.step_2
+import PersistentDecomp.thm1_1

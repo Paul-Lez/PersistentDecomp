@@ -1,7 +1,7 @@
 import Mathlib.Algebra.DirectSum.Module
-import PHFormalisation.Mathlib.Order.Disjoint
-import PHFormalisation.Prereqs.Indecomposable
-import PHFormalisation.Prereqs.PersistenceSubmodule
+import PersistentDecomp.Mathlib.Order.Disjoint
+import PersistentDecomp.Prereqs.Indecomposable
+import PersistentDecomp.Prereqs.PersistenceSubmodule
 
 open CategoryTheory Classical CategoryTheory.Limits DirectSum
 open CompleteLattice hiding sSup_le -- TODO: Fix in mathlib

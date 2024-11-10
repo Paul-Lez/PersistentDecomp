@@ -1,6 +1,6 @@
 import Mathlib.Algebra.Category.ModuleCat.Basic
 import Mathlib.Data.Real.Basic
-import PHFormalisation.Mathlib.Order.Interval.Basic
+import PersistentDecomp.Mathlib.Order.Interval.Basic
 
 open CategoryTheory Classical CategoryTheory.Limits
 
