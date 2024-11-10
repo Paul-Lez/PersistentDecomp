@@ -1,21 +1,4 @@
 import PHFormalisation.PersistenceSubmodule
-import Mathlib.Algebra.Category.ModuleCat.Abelian
-import Mathlib.Algebra.Module.LinearMap.Basic
-import Mathlib.Algebra.DirectSum.Module
-import Mathlib.CategoryTheory.Limits.Shapes.ZeroObjects
-import Mathlib.Algebra.Module.Prod
-import Mathlib.RingTheory.LocalRing.Basic
-import Mathlib.RingTheory.Artinian
-import Mathlib.LinearAlgebra.Projection
-import Mathlib.Data.SetLike.Fintype
-import Mathlib.Algebra.Module.Submodule.Ker
-import Mathlib.CategoryTheory.Preadditive.Injective
-import Mathlib.Order.SetNotation
-import Mathlib.Order.Disjoint
-import Mathlib.CategoryTheory.Limits.Shapes.ZeroObjects
-import PHFormalisation.thm1_1with_decomp_struct
-import PHFormalisation.Mathlib.Algebra.Module.Submodule.Pointwise
-import PHFormalisation.Mathlib.Algebra.DirectSum.Basic
 
 open CategoryTheory Classical CategoryTheory.Limits
 open Filter

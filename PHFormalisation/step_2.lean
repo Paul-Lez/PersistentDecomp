@@ -1,5 +1,22 @@
 import Mathlib.Algebra.DirectSum.Module
 import PHFormalisation.DirectSumDecomposition
+import Mathlib.Algebra.Category.ModuleCat.Abelian
+import Mathlib.Algebra.Module.LinearMap.Basic
+import Mathlib.Algebra.DirectSum.Module
+import Mathlib.CategoryTheory.Limits.Shapes.ZeroObjects
+import Mathlib.Algebra.Module.Prod
+import Mathlib.RingTheory.LocalRing.Basic
+import Mathlib.RingTheory.Artinian
+import Mathlib.LinearAlgebra.Projection
+import Mathlib.Data.SetLike.Fintype
+import Mathlib.Algebra.Module.Submodule.Ker
+import Mathlib.CategoryTheory.Preadditive.Injective
+import Mathlib.Order.SetNotation
+import Mathlib.Order.Disjoint
+import Mathlib.CategoryTheory.Limits.Shapes.ZeroObjects
+import PHFormalisation.thm1_1with_decomp_struct
+import PHFormalisation.Mathlib.Algebra.Module.Submodule.Pointwise
+import PHFormalisation.Mathlib.Algebra.DirectSum.Basic
 
 
 open CategoryTheory Classical CategoryTheory.Limits
@@ -84,27 +101,28 @@ variable {M} in
 lemma M_is_dir_sum_lambdas {T : Set (DirectSumDecomposition M)} (hT : IsChain
   LE.le T) (c : C) :
   DirectSum.IsInternal (fun (l : limit (ChainToTypeCat T)) => ((Submodule_of_chain  l)  c : Submodule K (M.obj c))) := by
-  rw [DirectSum.isInternal_iff]
-  constructor
-  · intro m h_ker
-    let Λ I := limit.π (ChainToTypeCat T) I
-    obtain ⟨J, hJ⟩ : ∃ (J : T), Pairwise fun l₁ l₂ ↦ Λ J l₁ ≠ Λ J l₂ := by
-      sorry
-    have : DirectSum.IsInternal (fun (j : J.val.S) => j.val  c) := by
-      sorry
-    simp_rw [DirectSum.isInternal_iff, DirectSum.ext_iff K] at this
-    --rw [DirectSum.isInternal_iff]
-    apply DirectSum.ext (R := K)
-    intro i
-    simp only [map_zero] at this ⊢
-    obtain ⟨x, hx⟩ := this.right <| m i--(limit.π (ChainToTypeCat T) J i).val  c
-    obtain ⟨j, y, rfl⟩ : ∃ j y, x = DirectSum.of _ j y := by
-      sorry
-    --simp? [ZeroMemClass.coe_zero, implies_true, DirectSum.of, DFinsupp.singleAddHom] at hx
-    --simp?
-    sorry --aesop
-    --rw [←this.left]
-  · sorry
+  sorry
+  -- rw [DirectSum.isInternal_iff]
+  -- constructor
+  -- · intro m h_ker
+  --   let Λ I := limit.π (ChainToTypeCat T) I
+  --   obtain ⟨J, hJ⟩ : ∃ (J : T), Pairwise fun l₁ l₂ ↦ Λ J l₁ ≠ Λ J l₂ := by
+  --     sorry
+  --   have : DirectSum.IsInternal (fun (j : J.val.S) => j.val  c) := by
+  --     sorry
+  --   simp_rw [DirectSum.isInternal_iff, DirectSum.ext_iff K] at this
+  --   --rw [DirectSum.isInternal_iff]
+  --   apply DirectSum.ext (R := K)
+  --   intro i
+  --   simp only [map_zero] at this ⊢
+  --   obtain ⟨x, hx⟩ := this.right <| m i--(limit.π (ChainToTypeCat T) J i).val  c
+  --   obtain ⟨j, y, rfl⟩ : ∃ j y, x = DirectSum.of _ j y := by
+  --     sorry
+  --   --simp? [ZeroMemClass.coe_zero, implies_true, DirectSum.of, DFinsupp.singleAddHom] at hx
+  --   --simp?
+  --   sorry --aesop
+  --   --rw [←this.left]
+  -- · sorry
 
 -- /-`M` is the direct sum of all the `M[λ]` -/
 -- variable {M} in
@@ -213,8 +231,9 @@ def RefinedDirectSumDecomposition
       intro x hx a ha ha'
       simp_rw [Set.mem_iUnion] at hx
       obtain ⟨N, hN, hN'⟩ := hx
+      obtain ⟨u, v, hxuv, hu, hv⟩ : ∃ u v, x = u + v ∧
+        u ∈ sSup (D.S \ {N}) ∧ v ∈ sSup (B N hN) := sorry
       have lem₁ : a ≤ N := sorry
-      have lem₂ : a ≤ sSup (D.S \ {N}) := sorry
       refine D.h_indep hN ?_ ?_
       · apply le_trans ha
         rw [hB N hN]
