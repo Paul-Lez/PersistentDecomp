@@ -123,14 +123,78 @@ lemma RefinementMapSurj' (I : DirectSumDecomposition M) (J : DirectSumDecomposit
   exact (lt_self_iff_false (⊤ : PersistenceSubmodule M)).mp contra
 
 
+noncomputable def RefinementMap (I : DirectSumDecomposition M) (J : DirectSumDecomposition M)
+  (h : IsRefinement J I) : J → I :=
+  if h' : I = J then by
+    intro N
+    use N
+    exact (h' ▸ N.prop)
+  else by
+    intro N
+    choose A h using (RefinementMapSurj' I J h N)
+    exact A
+
+
+@[simp]
+lemma RefinementMapId (I : DirectSumDecomposition M) (h : IsRefinement I I) (N : I) :
+  (RefinementMap I I h) N = N := by
+  simp[RefinementMap]
+
+
+lemma UniqueGE (I : DirectSumDecomposition M) (J : DirectSumDecomposition M)
+  (N : J) (A : I) (B : I) : N.val ≤ A ∧ N.val ≤ B → A = B := by
+  by_contra h'
+  push_neg at h'
+  rcases h' with ⟨h_le, h_neq⟩
+  have h_neq' : A.val ≠ B.val := by
+    simp[h_neq]
+  have h_disj : Disjoint A.val B.val := by
+    let s : Set (PersistenceSubmodule M) := {A.val, B.val}
+    have h_sub : s ≤ I.carrier := by
+      intro X hx
+      rcases hx with ⟨h_mem⟩
+      exact (h_mem ▸ A.prop)
+      subst X
+      exact B.prop
+    exact (CompleteLattice.setIndependent_pair h_neq').mp (CompleteLattice.SetIndependent.mono I.setIndependent' h_sub)
+  have h_le' : N.val ≤ A.val ⊓ B.val := by
+    apply le_inf
+    exact h_le.1
+    exact h_le.2
+  have h_eq_bot : N ≤ (⊥ : PersistenceSubmodule M) := by
+    apply le_trans (h_le') (disjoint_iff_inf_le.mp h_disj)
+  simp at h_eq_bot
+  exact (J.not_bot_mem' (h_eq_bot ▸ N.prop))
+
+
+lemma RefinementMapLE (I : DirectSumDecomposition M) (J : DirectSumDecomposition M)
+  (h : IsRefinement J I) : ∀ N : J, N.val ≤ (RefinementMap I J h N).val :=
+  if h' : I = J then by
+    intro N
+    subst h'
+    simp [RefinementMapId]
+  else by
+    intro N
+    simp[RefinementMap]
+    sorry
+
+--Two modules that both decompose the same element are sent to the same thing by the map.
+lemma RefinementMapSameImage (I : DirectSumDecomposition M) (J : DirectSumDecomposition M)
+  (h : IsRefinement J I)
+  : ∀ (N₁ N₂ : J), N₂.val ≤ (RefinementMap I J h N₁) → (RefinementMap I J h N₂) = (RefinementMap I J h N₁) := by
+  intro N₁ N₂ h_le₁
+  have h_le₂ : N₂.val ≤ (RefinementMap I J h N₂) := RefinementMapLE I J h N₂
+  exact (UniqueGE I J N₂ (RefinementMap I J h N₁) (RefinementMap I J h N₂) (⟨h_le₁, h_le₂⟩)).symm
+
+
 instance : Preorder (DirectSumDecomposition M) where
-  le D₁ D₂ := IsRefinement D₂ D₁
-  --D₁ ≤ D₂ iff D₂ refines D₁.
+  le D₁ D₂ := IsRefinement D₁ D₂
+  --D₁ ≤ D₂ iff D₁ refines D₂.
   le_refl D := by intro N _; use {N}; aesop
   le_trans I₁ I₂ I₃ h12 h23 := by
     intro N h_mem
-    rcases (h12 h_mem) with ⟨C, h_sub, h_eq⟩
-    choose f hf hf' using h23
+    rcases (h23 h_mem) with ⟨C, h_sub, h_eq⟩
+    choose f hf hf' using h12
     let A := ⨆ (c : C), (f (h_sub c.prop))
     use A
     constructor
@@ -166,7 +230,7 @@ instance : Preorder (DirectSumDecomposition M) where
 instance DirectSumDecompLE : PartialOrder (DirectSumDecomposition M) where
   --I suspect this will be painful to prove
   le_antisymm := by
-    intro I J h_I_le_J h_J_le_I
+    intro I J h_J_le_I h_I_le_J
     have h_final_left : ∀ N ∈ J, N ∈ I := by
       intro N
       by_contra h_neg

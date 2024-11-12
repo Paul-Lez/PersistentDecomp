@@ -1,6 +1,7 @@
 import Mathlib.CategoryTheory.Limits.Types
-import PersistentDecomp.DirectSumDecomposition
+import PersistentDecomp.DirectSumDecompositionDual
 import PersistentDecomp.Mathlib.Algebra.DirectSum.Basic
+import Mathlib.CategoryTheory.Limits.Types
 
 open CategoryTheory Classical CategoryTheory.Limits DirectSum DirectSumDecomposition
 
@@ -20,15 +21,20 @@ decompositions. Since these are defined in terms of sets, we could construct the
 inverse limit explicitly but I think this would be really painful and messy...-/
 
 /-- Here we write some code to go from chains in directSumDecompositions to diagrams in the category of types-/
-noncomputable def ToTypeCat : DirectSumDecomposition M ⥤ Type where
+noncomputable def ToTypeCat : DirectSumDecomposition M ⥤ Type  where
   obj D := D
   -- Define the maps f_{IJ} induced by "J refines I"
-  map {I J} f := by
-    dsimp
-    let h_le := leOfHom f
-    let g : J → I := fun N => (RefinementMapSurj' I J h_le N).choose
+  map {J I} f := by
+    simp
+    exact (RefinementMap I J (leOfHom f))
+  map_id {I} := by
+    aesop
+  map_comp {I J L} f g := by
+    have h₁ := leOfHom f
+    have h₂ := leOfHom g
+    simp
     sorry
-    --exact g is what we want but this is wrong arrow direction
+
 
 /-- This is possibly useful to make things a bit cleaner so let's keep it for now but possibly
 remove it later -/
@@ -37,6 +43,7 @@ noncomputable def Pone (T : Set (DirectSumDecomposition M)) : T ⥤ Type where
   map {J I} f := ToTypeCat.map f
   map_id I := by rw [← ToTypeCat.map_id]; rfl
   map_comp {I J K} f g := by rw [← ToTypeCat.map_comp]; rfl
+
 
 variable (N : PersistenceSubmodule M) {T : Set (DirectSumDecomposition M)}
 
@@ -53,6 +60,21 @@ notation3:max "M["l"]" => chainBound l
 notation3:max "M["l"]_[" c "]" => chainBound l c
 
 lemma chainBound_le : M[l] ≤ (Λ I l).val := iInf_le ..
+
+
+noncomputable def limit_elt_mk (hT : IsChain LE.le T) (f : T → PersistenceSubmodule M)
+  (h_le : ∀ (I J : T), I ≤ J → f J ≤ f I) (h_mem : ∀ I : T, (f I) ∈ I.val) : (L T) := by
+  let f' : (I : T) → (Pone T).obj I := by
+    intro I
+    simp[Pone, ToTypeCat]
+    exact ⟨(f I), h_mem I⟩
+  have h_compatible : (∀ (j j' : ↑T) (f : j ⟶ j'), (Pone T).map f (f' j) = f' j') := by
+    intro I J g
+    have h_ij := leOfHom g
+    sorry
+  let l := CategoryTheory.Limits.Types.Limit.mk (Pone T) f' h_compatible
+  exact l
+
 
 /-- `M` is the direct sum of all the `M[λ]`. -/
 lemma isInternal_chainBound (hT : IsChain LE.le T) (c : C) : IsInternal fun l : L T ↦ M[l]_[c] := by
