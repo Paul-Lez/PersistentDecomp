@@ -167,6 +167,7 @@ lemma UniqueGE (I : DirectSumDecomposition M) (J : DirectSumDecomposition M)
   exact (J.not_bot_mem' (h_eq_bot ▸ N.prop))
 
 
+--RefinmentMap N sends N to something it is included in.
 lemma RefinementMapLE (I : DirectSumDecomposition M) (J : DirectSumDecomposition M)
   (h : IsRefinement J I) : ∀ N : J, N.val ≤ (RefinementMap I J h N).val :=
   if h' : I = J then by
@@ -175,8 +176,8 @@ lemma RefinementMapLE (I : DirectSumDecomposition M) (J : DirectSumDecomposition
     simp [RefinementMapId]
   else by
     intro N
-    simp[RefinementMap]
-    sorry
+    simp[RefinementMap, h']
+    exact Exists.choose_spec (RefinementMapSurj' I J h N)
 
 --Two modules that both decompose the same element are sent to the same thing by the map.
 lemma RefinementMapSameImage (I : DirectSumDecomposition M) (J : DirectSumDecomposition M)
@@ -185,6 +186,27 @@ lemma RefinementMapSameImage (I : DirectSumDecomposition M) (J : DirectSumDecomp
   intro N₁ N₂ h_le₁
   have h_le₂ : N₂.val ≤ (RefinementMap I J h N₂) := RefinementMapLE I J h N₂
   exact (UniqueGE I J N₂ (RefinementMap I J h N₁) (RefinementMap I J h N₂) (⟨h_le₁, h_le₂⟩)).symm
+
+
+--If N ≤ A for some A : I, then RefinementMap N = A.
+lemma SendsToUniqueGE (I : DirectSumDecomposition M) (J : DirectSumDecomposition M) (h : IsRefinement J I)
+  (N : J) (A : I) : N.val ≤ A → (RefinementMap I J h N) = A := by
+  intro h_le
+  let B : I := (RefinementMap I J h N)
+  rw [UniqueGE I J N A B (⟨h_le, RefinementMapLE I J h N⟩)]
+
+
+@[simp]
+lemma RefinmentMapFunctorial (I : DirectSumDecomposition M) (J : DirectSumDecomposition M) (K : DirectSumDecomposition M)
+  (hij : IsRefinement J I) (hjk : IsRefinement K J) (hik : IsRefinement K I)
+  : ∀ N : K, (RefinementMap I K hik N) = RefinementMap I J hij (RefinementMap J K hjk N) := by
+  intro N
+  have h_le : N.val ≤ RefinementMap I J hij (RefinementMap J K hjk N) := by
+    apply le_trans (RefinementMapLE J K hjk N)
+    exact (RefinementMapLE I J hij _)
+  exact SendsToUniqueGE I K hik N (RefinementMap I J hij (RefinementMap J K hjk N)) h_le
+
+
 
 
 instance : Preorder (DirectSumDecomposition M) where

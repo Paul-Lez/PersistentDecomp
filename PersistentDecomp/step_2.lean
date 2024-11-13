@@ -32,9 +32,9 @@ noncomputable def ToTypeCat : DirectSumDecomposition M ⥤ Type  where
   map_comp {I J L} f g := by
     have h₁ := leOfHom f
     have h₂ := leOfHom g
+    ext N : 2
     simp
-    sorry
-
+    exact RefinmentMapFunctorial .. --THANK YOU FOR .. YAEL!!
 
 /-- This is possibly useful to make things a bit cleaner so let's keep it for now but possibly
 remove it later -/
