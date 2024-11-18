@@ -129,4 +129,16 @@ lemma iInf_apply {ι : Sort*} (f : ι → PersistenceSubmodule M) (c : C) :
 instance : CompleteLattice (PersistenceSubmodule M) :=
   DFunLike.coe_injective.completeLattice _ coe_sup coe_inf coe_sSup coe_sInf coe_top coe_bot
 
+lemma setIndependent_iff_setIndependent_forall
+    (S : Set (PersistenceSubmodule M)) :
+    CompleteLattice.SetIndependent S ↔
+    ∀ c : C, CompleteLattice.SetIndependent {(N.toFun c) | (N : PersistenceSubmodule M) (hN : N ∈ S)} := by
+  sorry
+
+-- lemma sSu
+--     (S : Set (PersistenceSubmodule M)) :
+--     CompleteLattice.SetIndependent S ↔ ∀ c : C, CompleteLattice.SetIndependent { (N.toFun c) | (N : PersistenceSubmodule M) (hN : N ∈ S)} := by
+--   sorry
+
+
 end PersistenceSubmodule

@@ -107,9 +107,6 @@ end Chains
 
 section Indecomposable
 
-/--`M` is indecomposable iff its only non-trivial submodule is the zero submodule `⊥`-/
-def Indecomposable : Prop := IsMax (TrivialDecomp M ⊤)
-
 /--This is the definition of indecomposability we should be using since it's more general
 (works at a lattice theoretic level)-/
 -- TODO: we don't need `a ≤ N` and `b ≤ N` in the implications
@@ -131,6 +128,213 @@ lemma Indecomposable_of_mem_Max_Direct_sum_decomposition
   have contra : ¬ IsMax D := by sorry
   exact contra hmax
 
+section
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+variable {R : Type*} [Ring R] {M : Type*} [AddCommGroup M] [Module R M]
+
+lemma Set.UnionIndep_of_indep
+    (S : Set (Submodule R M))
+    (hS : CompleteLattice.SetIndependent S)
+    (B : ∀ (N : Submodule R M), N ∈ S → Set (Submodule R M))
+    (hB : ∀ N hN, N = sSup (B N hN))
+    (hB' : ∀ N hN, CompleteLattice.SetIndependent (B N hN))
+    (hB'' : ∀ N hN, ⊥ ∉ B N hN) :
+    CompleteLattice.SetIndependent (⋃ (N) (hN), B N hN) := by
+  sorry
+
+end
+
+#check Exists.casesOn
+
 /--
 If `D` is a direct sum decomposition of `M` and for each `N` appearing in `S` we are given a direct
 sum decomposition of `N`, we can construct a refinement of `D`.
@@ -141,44 +345,77 @@ def RefinedDirectSumDecomposition {D : DirectSumDecomposition M}
     (hB' : ∀ N hN, CompleteLattice.SetIndependent (B N hN))
     (hB'' : ∀ N hN, ⊥ ∉ B N hN) :
     DirectSumDecomposition M where
-    S := ⋃ (N) (hN), B N hN
-    h_indep := by
-      intro x hx a ha ha'
-      simp_rw [Set.mem_iUnion] at hx
-      obtain ⟨N, hN, hN'⟩ := hx
-      obtain ⟨u, v, hxuv, hu, hv⟩ : ∃ u v, x = u + v ∧
-        u ∈ sSup (D.S \ {N}) ∧ v ∈ sSup (B N hN) := sorry
-      have lem₁ : a ≤ N := sorry
-      refine D.h_indep hN ?_ ?_
-      · apply le_trans ha
-        rw [hB N hN]
-        apply le_sSup hN'
-      · let S := a ⊓
-        apply le_trans ha'
-        calc sSup (⋃ (N) (hN), B N hN \ {x}) = ⨆ (N) (hN), sSup (B N hN \ {x}) := by sorry
-          _ = (⨆ (M) (hM) (_ : M ≠ N), sSup (B M hM)) ⊔ sSup (B N hN \ {x}) := by sorry
-          _ =
-        --apply sSup_le_sSup
+    carrier := ⋃ (N) (hN), B N hN
+    setIndependent' := by
+      rw [PersistenceSubmodule.setIndependent_iff_setIndependent_forall]
+      intro c
+      set pointwiseCarrier := {(N c)| (N : PersistenceSubmodule M) (hN : N ∈ D)}
+      let pointwiseS := {x | ∃ N, ∃ (_ : N ∈ ⋃ N, ⋃ (hN : N ∈ D), B N hN), N c = x}
+      have := Set.UnionIndep_of_indep (R := K) (M:=M.obj c) {(N.toFun c) | (N : PersistenceSubmodule M) (hN : N ∈ D.carrier)} sorry (fun N hN =>
+         { (T c) | (T : PersistenceSubmodule M) (_ : T ∈ B (Exists.choose hN) (Exists.choose (Exists.choose_spec hN)))}) sorry sorry sorry
+      convert this
+      ext x
+      constructor
+      · intro hx
+        obtain ⟨T, hT, hT'⟩ := hx
+        simp_rw [Set.mem_iUnion] at hT ⊢
+        obtain ⟨N, hN, hN'⟩ := hT
+        use N c
+        constructor
+        · use T
+          constructor
+          exact hT'
+          sorry
+        · use N, hN
+          rfl
+      --suffices : {x | ∃ N, ∃ (_ : N ∈ ⋃ N, ⋃ (hN : N ∈ D), B N hN), N.toFun c = x} =
+      · sorry
 
-#exit
-        --We need to show that the submodules appearing in the decomposition are independent
-        --might be a little annoying
-        sorry
-    h_top := by
-      simp_rw [sSup_iUnion]
-      calc
-        ⨆ i, ⨆ (i_1 : i ∈ D), sSup (B i i_1) = ⨆ (i) (i_1 : i ∈ D), i := by
-          apply iSup_congr
-          intro I
-          by_cases hI : I ∈ D
-          · simp only [hB I hI, instSupSetSubmodule, exists_prop]
-          · simp only [hI, instSupSetSubmodule, exists_prop, not_false_eq_true, iSup_neg]
-        _ = ⊤ := by rw [← D.h_top, sSup_eq_iSup]
-    bot_notin := by
-      intro h
-      simp_rw [Set.mem_iUnion] at h
-      obtain ⟨N, hN, hbot⟩ := h
-      exact hB'' N hN hbot
+    sSup_eq_top' := sorry
+    not_bot_mem' := sorry
+
+--       rintro c ⟨_, N⟩ a ha ha'
+--       simp_rw [Set.mem_iUnion] at hx
+--       obtain ⟨N, hN, hN'⟩ := hx
+--       intro y z
+--       obtain ⟨u, v, hxuv, hu, hv⟩ : ∃ u v, y = u + v ∧
+--         u ∈ sSup (D.S \ {N}) ∧ v ∈ sSup ((B N hN) \ {x}) := sorry
+
+
+--   #exit
+
+
+--       have lem₁ : a ≤ N := sorry
+--       refine D.h_indep hN ?_ ?_
+--       · apply le_trans ha
+--         rw [hB N hN]
+--         apply le_sSup hN'
+--       · let S := a ⊓
+--         apply le_trans ha'
+--         calc sSup (⋃ (N) (hN), B N hN \ {x}) = ⨆ (N) (hN), sSup (B N hN \ {x}) := by sorry
+--           _ = (⨆ (M) (hM) (_ : M ≠ N), sSup (B M hM)) ⊔ sSup (B N hN \ {x}) := by sorry
+--           _ =
+--         --apply sSup_le_sSup
+
+-- #exit
+--         --We need to show that the submodules appearing in the decomposition are independent
+--         --might be a little annoying
+--         sorry
+--     h_top := by
+--       simp_rw [sSup_iUnion]
+--       calc
+--         ⨆ i, ⨆ (i_1 : i ∈ D), sSup (B i i_1) = ⨆ (i) (i_1 : i ∈ D), i := by
+--           apply iSup_congr
+--           intro I
+--           by_cases hI : I ∈ D
+--           · simp only [hB I hI, instSupSetSubmodule, exists_prop]
+--           · simp only [hI, instSupSetSubmodule, exists_prop, not_false_eq_true, iSup_neg]
+--         _ = ⊤ := by rw [← D.h_top, sSup_eq_iSup]
+--     bot_notin := by
+--       intro h
+--       simp_rw [Set.mem_iUnion] at h
+--       obtain ⟨N, hN, hbot⟩ := h
+--       exact hB'' N hN hbot
 
 lemma RefinedDirectSumDecomposition_le
     {D : DirectSumDecomposition M}
