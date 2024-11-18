@@ -1,9 +1,6 @@
 import Mathlib.Algebra.Category.ModuleCat.Abelian
 import Mathlib.RingTheory.Artinian
 
-open CategoryTheory Classical CategoryTheory.Limits
-open Filter
-
 /-!
 Work left to do
 
@@ -17,6 +14,7 @@ Step 2:
   b -define the set of all decompositions of a persistence module
   c -equip that set with the appropriate partial order
   d -prove that every chain has an upper bound by constructing the upper bound from the paper
+
 
 a : actually defining a generic product for persistence modules sounds very complicated.
 Say we have M a persistence module and a large number of submodules indexed by some set
@@ -32,27 +30,30 @@ exact definition of large products of persistence modules. However, we will need
 look into this at some point - it's required to finish the proof of step 2.
 -/
 
---More general definition of persistence modules over some (small) category C.
-abbrev FunctCat (C : Type*) [Category C] (K : Type*) [DivisionRing K] := (C ⥤ ModuleCat K)
+open CategoryTheory Filter
 
-def ZeroSubmod (K : Type*) [DivisionRing K] : ModuleCat K where carrier := PUnit
+universe u
 
-def ZeroModule (C K : Type*) [Category C] [DivisionRing K] : FunctCat C K where
-  obj _ := ZeroSubmod K
-  map _ := 𝟙 (ZeroSubmod K)
+def ZeroSubmod (K : Type u) [DivisionRing K] : ModuleCat.{u} K where
+  carrier := PUnit.{u+1}
 
-/-- Pointwise finite persistence modules over some small category C. -/
+def ZeroModule (C K : Type*) [Category C] [DivisionRing K] : (C ⥤ ModuleCat K) where
+  obj := fun _ ↦ (ZeroSubmod K)
+  map _ :=  𝟙 (ZeroSubmod K)
+
+--Pointwise finite persistence modules over some small category C.
 structure PtwiseFinitePersMod (C : Type*) [Category C] (K : Type*)
   [DivisionRing K] where
-  to_functor : FunctCat C K
+  to_functor : C ⥤ ModuleCat K
   finite_cond (X : C) : Module.Finite K (to_functor.obj X)
+
 
 --Below : product of persistence modules
 --Given R a field, C a category, X ∈ Obj(C) and F, G two functors
 --C ⥤ Modules over R, this defines the product F(X) × G(X).
 @[simp]
 def ProductModule (R : Type) [DivisionRing R] (C : Type) [Category C]
-  (F : FunctCat C R) (G : FunctCat C R) (X : C): ModuleCat R :=
+  (F : C ⥤ ModuleCat R) (G : C ⥤ ModuleCat R) (X : C): ModuleCat R :=
   ModuleCat.of R ((F.obj X) × (G.obj X))
 
 --Given R a field, C a category, X, Y ∈ Obj(C), f : X ⟶ Y a linear map
@@ -60,7 +61,7 @@ def ProductModule (R : Type) [DivisionRing R] (C : Type) [Category C]
 --(F f, G f) : (F X × G X) ⟶ (F Y × G Y)
 @[simp]
 def ProductMapFunc (R : Type) [DivisionRing R] (C : Type) [Category C]
-  {X Y : C} (f : (X ⟶ Y)) (F : FunctCat C R) (G : FunctCat C R)
+  {X Y : C} (f : (X ⟶ Y)) (F : C ⥤ ModuleCat R) (G : C ⥤ ModuleCat R)
   : ((F.obj X × G.obj X) →ₗ[R] (F.obj Y × G.obj Y)) where
   toFun x := by
     let x₁ := x.1
@@ -76,27 +77,32 @@ def ProductMapFunc (R : Type) [DivisionRing R] (C : Type) [Category C]
 --Same as above, but written with the ProductModule objects for simplicity
 @[simp]
 def ProductModuleMap (R : Type) [DivisionRing R] (C : Type) [Category C]
-  {X Y : C} (f : (X ⟶ Y)) (F : FunctCat C R) (G : FunctCat C R) :
+  {X Y : C} (f : (X ⟶ Y)) (F : C ⥤ ModuleCat R) (G : C ⥤ ModuleCat R) :
   ((ProductModule R C F G X) ⟶ (ProductModule R C F G Y)) :=
   ProductMapFunc R C f F G
 
 --The direct sum of the functors F and G.
 @[simp]
 noncomputable def FunctorDirSum (R : Type) [DivisionRing R] (C : Type) [Category C]
-  (F : FunctCat C R) (G : FunctCat C R) : FunctCat C R where
+  (F : C ⥤ ModuleCat R) (G : C ⥤ ModuleCat R) : C ⥤ ModuleCat R where
   obj X := ProductModule R C F G X
   map f := ProductModuleMap R C f F G
-  map_id X := by simp; rfl
-  map_comp f g := by simp; rfl
+  map_id := by
+    intro X
+    simp
+    rfl
+  map_comp := by
+    intro X Y Z f g
+    simp
+    rfl
 
 --The above-defined direct sum of persistence modules corresponds to the
 --coproduct inherited from the fact that ModuleCat is abelian.
 --TODO : prove this without sorry
-/-
-theorem DirSumIsCoprod (R : Type) [DivisionRing R] (C : Type) [Category C] (F G : FunctCat C R) :
-    FunctorDirSum R C F G = F ⨿ G := by
+theorem DirSumIsCoprod (R : Type) [DivisionRing R] (C : Type) [Category C]
+  (F : C ⥤ ModuleCat R) (G : C ⥤ ModuleCat R) : (FunctorDirSum R C F G) = (F ⨿ G) := by
   sorry
--/
+
 
 --I wanted to try and turn the statement above into a more precise one with this theorem, but
 --it is a lot more annoying than it should be.
@@ -117,28 +123,40 @@ theorem ExistsFittingfit (R : Type) [DivisionRing R] (M : ModuleCat R)
   exact h₁
 -/
 
+
+
+
+
 --Submodules
 --This defines submodules of persistence modules.
-structure Subfunctor (R : Type) [DivisionRing R] (C : Type) [Category C] (F : FunctCat C R) where
-  baseFunctor : FunctCat C R
+structure Subfunctor (R : Type) [DivisionRing R] (C : Type) [Category C]
+  (F : C ⥤ ModuleCat R) where
+  baseFunctor : C ⥤ ModuleCat R
   targetFunctor := F
   injection (X : C) : (baseFunctor.obj X →ₗ[R] F.obj X)
   inj_cond (X : C) : Function.Injective (injection X)
-  restriction {X Y} f : ∀ (x : baseFunctor.obj X),
+  restriction {X Y : C} (f : X ⟶ Y) : ∀ (x : baseFunctor.obj X),
     (baseFunctor.map f ≫ injection Y) x = (asHom (injection X) ≫ F.map f) x
     --careful with asHom! This breaks if you use asHom injection Y instead.
 --I've also been told there are alternatives way to do this definition on Zulip,
 --to look into.
 
---Should this be a def?
-def SubmodDecomp (R : Type) [DivisionRing R] (C : Type) [Category C] (M : FunctCat C R)
-    (N₁ N₂ : Subfunctor R C M) := M = FunctorDirSum R C N₁.baseFunctor N₂.baseFunctor
 
-def IsIndecomposable (R : Type) [DivisionRing R] (C : Type) [Category C] (M : FunctCat C R) :=
-  ∀ (N₁ N₂ : Subfunctor R C M), SubmodDecomp R C M N₁ N₂ → M = N₁.baseFunctor ∨ M = N₂.baseFunctor
+
+--Should this be a def?
+def SubmodDecomp (R : Type) [DivisionRing R] (C : Type) [Category C]
+  (M : C ⥤ ModuleCat R) (N₁ : Subfunctor R C M) (N₂ : Subfunctor R C M)
+  := (M = (FunctorDirSum R C N₁.baseFunctor N₂.baseFunctor))
+
+
+def IsIndecomposable (R : Type) [DivisionRing R] (C : Type) [Category C]
+  (M : C ⥤ ModuleCat R) :=
+  ∀ (N₁ : Subfunctor R C M) (N₂ : Subfunctor R C M),
+  SubmodDecomp R C M N₁ N₂ → (M = N₁.baseFunctor) ∨ (M = N₂.baseFunctor)
+
 
 theorem IndecAndDecImpliesEq  (R : Type) [DivisionRing R] (C : Type) [Category C]
-  (M : FunctCat C R) (N₁ : Subfunctor R C M) (N₂ : Subfunctor R C M)
+  (M : C ⥤ ModuleCat R) (N₁ : Subfunctor R C M) (N₂ : Subfunctor R C M)
   (hdec : SubmodDecomp R C M N₁ N₂) (hindec : IsIndecomposable R C M)
   : (M = N₁.baseFunctor) ∨ (M = N₂.baseFunctor) := by
   apply hindec
@@ -148,38 +166,22 @@ theorem IndecAndDecImpliesEq  (R : Type) [DivisionRing R] (C : Type) [Category C
 --If we have a decomposition, and M is equal to one of the 2 factors, then the other
 --factor is necessarily the 0 module.
 theorem DecImpliesTrivial (R : Type) [DivisionRing R] (C : Type) [Category C]
-  (M : FunctCat C R) (N₁ : Subfunctor R C M) (N₂ : Subfunctor R C M)
+  (M : C ⥤ ModuleCat R) (N₁ : Subfunctor R C M) (N₂ : Subfunctor R C M)
   (hdec : SubmodDecomp R C M N₁ N₂) (heq : M = N₁.baseFunctor) :
   N₂.baseFunctor = (ZeroModule C R) := by
   sorry
 
 
 
-
-variable (C : Type) [Category C]
-variable (R : Type) [DivisionRing R]
-
---A decomposition of M is, for now, just a set of subfunctors of M. Of course, it needs
---to fulfill certain conditions, but for now I am just trying to get the partial order to
---work on the class.
---Written as a structure, and not a class, so that all decompositions of M share one
---type. This will be useful for Zorn's lemma applications.
-
-structure Decomposition (M : FunctCat C R) where
-  SubmodSet : Set (FunctCat C R)
-
---This is the property that "S₁ is smaller or equal to S₂" for 2 decompositions S₁
---and S₂.
-
 --Below: endomorphism rings of persistence modules.
 
 
 --The endomorphism ring of some persistence module F.
-abbrev EndRing (C : Type) [Category C] (R : Type) [DivisionRing R]
-  (F : FunctCat C R) := (F ⟶ F)
+abbrev EndRing (C R : Type) [Category C] [DivisionRing R] (F : C ⥤ ModuleCat R) := F ⟶ F
 
-
-variable (F : FunctCat C R)
+variable (C : Type) [Category C]
+variable (R : Type) [DivisionRing R]
+variable (F : C ⥤ ModuleCat R)
 
 --The 0 natural transformation from F to itself.
 @[simp]
@@ -200,7 +202,7 @@ instance : Mul (EndRing C R F) where
   mul f g := g ≫ f --careful: f ⬝ g = f ∘ g here
 
 
-def OppEndo (θ : EndRing C R F) : (EndRing C R F) where
+def OppEndo (θ : EndRing C R F) : EndRing C R F where
   app X := - (θ.app X)
 
 instance : Neg (EndRing C R F) where
@@ -249,124 +251,37 @@ lemma NegApp (θ : EndRing C R F) (X : C) : (-θ).app X = - (θ.app X) := by
   rfl
 
 @[simp]
-lemma NegAppModule (θ : EndRing C R F) (X : C) (x : F.obj X) : ((-θ).app X) x = - (θ.app X x) := by
+lemma NegAppModule (θ : EndRing C R F) (X : C) (x : F.obj X) :((-θ).app X) x = - (θ.app X x) := by
   rfl
 
 @[simp]
-lemma MulDef (e : EndRing C R F) (f : EndRing C R F) :
+lemma MulDef (e : EndRing C R F) (f : EndRing C R F):
   (e * f) = f ≫ e := by
   rfl
 
 @[simp]
 lemma CompIsComp (e : EndRing C R F) (f : EndRing C R F) (X : C) :
-  (e * f).app X = f.app X ≫ e.app X := rfl
+  (e * f).app X = f.app X ≫ e.app X := by
+  rfl
 
-@[simp]
-lemma EndAddAssoc : ∀ (θ η ε : EndRing C R F), θ + η + ε = θ + (η + ε) := by
-  intro θ η ε
-  ext
-  simp only [SumIsSum, SumIsSumModule, add_assoc]
-
-@[simp]
-lemma EndAddComm : ∀ (θ η : EndRing C R F), θ + η = η + θ := by
-  intro η θ
-  ext
-  simp only [SumIsSumModule, add_comm]
-
-@[simp]
-lemma ZeroAdd : ∀ (a : EndRing C R F), 0 + a = a := by
-  intro θ
-  ext
-  simp only [ZeroDef, ZeroEndomorphism, EndAddComm, NatTrans.app_add, add_zero]
-
-@[simp]
-lemma AddZero : ∀ (a : EndRing C R F), a + 0 = a := by
-  intro θ
-  ext
-  simp only [ZeroDef, ZeroEndomorphism, NatTrans.app_add, add_zero]
-
-@[simp]
-lemma ZeroMul : ∀ (a : EndRing C R F), 0 * a = 0 := by
-  intro θ
-  ext
-  simp only [ZeroDef, ZeroEndomorphism, MulDef, NatTrans.comp_app, Limits.comp_zero]
-
-@[simp]
-lemma MulZero : ∀ (a : EndRing C R F), (a * 0 = 0) := by
-  intro θ
-  ext X x
-  simp only [ZeroDef, ZeroEndomorphism, MulDef, NatTrans.comp_app, Limits.zero_comp]
-
-@[simp]
-lemma OneMul : ∀ (a : EndRing C R F), (a * 1 = a) := by
-  intro θ
-  ext X x
-  simp only [OneDef, MulDef, Category.id_comp]
-
-@[simp]
-lemma MulOne : ∀ (a : EndRing C R F), (1 * a = a) := by
-  intro θ
-  ext X x
-  simp only [OneDef, MulDef, Category.comp_id]
-
-@[simp]
-lemma MulAssoc : ∀ (a b c : EndRing C R F), a * b * c = a * (b * c) := by
-  intro θ η ε
-  ext X x
-  simp only [MulDef, NatTrans.comp_app, ModuleCat.coe_comp, Function.comp_apply, Category.assoc]
-
-@[simp]
-lemma RightDistrib : ∀ (a b c : EndRing C R F), (a + b) * c = a * c + b * c := by
-  intro θ η ε
-  ext X x
-  simp only [MulDef, Preadditive.comp_add, NatTrans.app_add, NatTrans.comp_app]
-
-@[simp]
-lemma LeftDistrib : ∀ (a b c : EndRing C R F), a * (b + c) = a * b + a * c := by
-  intro θ η ε
-  ext X x
-  simp only [MulDef, Preadditive.add_comp, NatTrans.app_add, NatTrans.comp_app]
-
-@[simp]
-lemma AddLeftNeg : ∀ (a : EndRing C R F), -a + a = 0 := by
-  intro θ
-  ext X x
-  simp only [ZeroDef, ZeroEndAppIsZeroAtXatx, SumIsSumModule, NegAppModule, neg_add_cancel]
-
-
-
---The endomorphism ring is a ring.
---TODO: understand why the rfl tactic fails and fix it
-
-instance EndRingIsRing (R : Type) [DivisionRing R] (C : Type) [Category C]
-  (F : FunctCat C R) : Ring (EndRing C R F) where
-    zero_mul := ZeroMul C R F
-    mul_zero := MulZero C R F
-    one_mul := OneMul C R F
-    mul_one := MulOne C R F
-    zero_add := ZeroAdd C R F
-    add_assoc := EndAddAssoc C R F
-    add_zero := AddZero C R F
-    add_comm := EndAddComm C R F
-    nsmul := nsmulRec
-    zsmul := zsmulRec
-    neg_add_cancel := AddLeftNeg C R F
-    left_distrib := LeftDistrib C R F
-    right_distrib := RightDistrib C R F
-    mul_assoc := MulAssoc C R F
-    nsmul_zero θ := rfl
-    nsmul_succ n θ := rfl
-    natCast n := nsmulRec n 1
-    natCast_zero := rfl
-    natCast_succ n := rfl
-    npow := npowRec
-    npow_zero θ := rfl
-    npow_succ n θ := rfl
-    sub θ η := θ + (-η)
-    sub_eq_add_neg θ η := rfl
-    zsmul_zero' θ := rfl
-    zsmul_succ' n θ := rfl
-    zsmul_neg' n θ := rfl
+/-- The endomorphism ring is a ring. -/
+instance EndRingIsRing (R : Type) [DivisionRing R] (C : Type) [Category C] (F : C ⥤ ModuleCat R) :
+    Ring (EndRing C R F) where
+  zero_mul a := by ext c x; simp
+  mul_zero a := by ext c x; simp
+  one_mul a := by ext c x; simp
+  mul_one a := by ext c x; simp
+  zero_add a := by ext c x; exact zero_add ..
+  add_assoc a b c := by ext c x; exact add_assoc ..
+  add_zero a := by ext c x; exact add_zero ..
+  add_comm a b := by ext c x; exact add_comm ..
+  neg_add_cancel a := by ext c x; exact neg_add_cancel ..
+  left_distrib a b c := by ext c x; simp
+  right_distrib a b c := by ext c x; simp
+  mul_assoc a b c := by ext c x; simp
+  sub_eq_add_neg a b := by ext c x; exact sub_eq_add_neg ..
+  nsmul := nsmulRec
+  zsmul := zsmulRec
 
 @[simp]
 lemma PowEqCompLeft (θ : EndRing C R F) (n : ℕ) : θ^(n+1) = θ ≫ (θ^n) := by
@@ -403,10 +318,12 @@ theorem ExistsFittingn (R : Type) [DivisionRing R] (M : ModuleCat R)
   apply hhh
   exact h_n
 
+
 --substep 2
 theorem Step2 (α : X ⟶ Y) (M : PtwiseFinitePersMod C R) (η : EndRing C R M.to_functor) :
-  M.to_functor.map α ≫ η.app Y = η.app X ≫ M.to_functor.map α := by
+  (M.to_functor.map α) ≫ (η.app Y) = (η.app X) ≫ (M.to_functor.map α) := by
   apply η.naturality
+
 
 --Can't make heads or tails of this one yet.
 theorem Step2_2 (α : X ⟶ Y) (M : PtwiseFinitePersMod C R) (η : EndRing C R M.to_functor)
@@ -414,8 +331,7 @@ theorem Step2_2 (α : X ⟶ Y) (M : PtwiseFinitePersMod C R) (η : EndRing C R M
   induction' n with n hn
   have hnat : (M.to_functor.map α) ≫ (η.app Y) = (η.app X) ≫ (M.to_functor.map α) := Step2 C R X Y α M η
   have hpow : M.to_functor.map α ≫ (η ^ (n + 1)).app Y = M.to_functor.map α ≫ (((η ^ n) ≫ η).app Y) := by
-    simp
-    sorry
+    simp [-PowEqCompLeft]
   sorry
   sorry
 
@@ -436,6 +352,7 @@ theorem Step3_1 (M : PtwiseFinitePersMod C R) (α : X ⟶ Y) (n : ℕ)
   rw [LinearMap.map_coe_ker]
   simp
 
+
 theorem Step3_2 (M : PtwiseFinitePersMod C R) (α : X ⟶ Y) (n : ℕ)
   (ηx : M.to_functor.obj X →ₗ[R] M.to_functor.obj X) (ηy : M.to_functor.obj Y →ₗ[R] M.to_functor.obj Y)
   (hnat : M.to_functor.map α ≫ (ηy^n) = (ηx^n) ≫ M.to_functor.map α)
@@ -455,11 +372,11 @@ theorem Step3_2 (M : PtwiseFinitePersMod C R) (α : X ⟶ Y) (n : ℕ)
     rw [hz]
   · dsimp
     apply LinearMap.mem_range.mpr
-    use ((M.to_functor.map α) z)
+    use M.to_functor.map α z
 
 -- theorem EndRingLocal (M : PtwiseFinitePersMod C R) (N₁ : Subfunctor R C M.to_functor)
---   (N₂ : Subfunctor R C M.to_functor) (hdec : SubmodDecomp R C M.to_functor N₁ N₂)
---   (hindec : IsIndecomposable R C M.to_functor) (η : EndRing C R M.to_functor)
---   (heq : M.to_functor = N₁.baseFunctor) (hrange : ∀ X : C, IsUnit (η.app X))
---   : (IsUnit η) := by
+--     (N₂ : Subfunctor R C M.to_functor) (hdec : SubmodDecomp R C M.to_functor N₁ N₂)
+--     (hindec : IsIndecomposable R C M.to_functor) (η : EndRing C R M.to_functor)
+--     (heq : M.to_functor = N₁.baseFunctor) (hrange : ∀ X : C, IsUnit (η.app X))
+--  : (IsUnit η) := by
 --   sorry

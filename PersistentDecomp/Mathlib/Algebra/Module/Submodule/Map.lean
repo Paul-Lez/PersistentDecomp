@@ -1,4 +1,4 @@
-import Mathlib.Algebra.Module.Submodule.Pointwise
+import Mathlib.Algebra.Module.Submodule.Map
 
 variable {R : Type*} {R₂ : Type*}
 variable {M : Type*} {M₂ : Type*}

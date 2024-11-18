@@ -1,7 +1,7 @@
 import Lake
 open Lake DSL
 
-package "PH_formalisation" where
+package "PersistentDecomp" where
   leanOptions := #[
     ⟨`autoImplicit, false⟩, -- prevents typos to be interpreted as new free variables
     ⟨`relaxedAutoImplicit, false⟩, -- prevents typos to be interpreted as new free variables
@@ -11,5 +11,5 @@ package "PH_formalisation" where
 require "leanprover-community" / "mathlib"
 
 @[default_target]
-lean_lib «PHFormalisation» where
+lean_lib PersistentDecomp where
   -- add any library configuration options here

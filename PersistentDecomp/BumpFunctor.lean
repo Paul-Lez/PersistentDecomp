@@ -1,18 +1,25 @@
-import Mathlib.CategoryTheory.Limits.Shapes.ZeroObjects
-import Mathlib.Order.Interval.Basic
-import PHFormalisation.archive.Basic_variants
-  --change this to import the file with the `PersistentModule` definition
+import Mathlib.Algebra.Category.ModuleCat.Basic
+import Mathlib.Data.Real.Basic
+import PersistentDecomp.Mathlib.Order.Interval.Basic
 
 open CategoryTheory Classical CategoryTheory.Limits
 
-variable {A : Type u} [Category.{v} A] [Abelian A]
+universe u v
+variable {A : Type u} [Category.{v} A]
 variable {C : Type*} [Category C] (e : A) {S : Set C} {z : A} (hz : IsZero z)
-
 
 /--This property should be the categorical version of being an interval (or some form of connectedness/convexity) but
 I'm not sure if it is common in the literature. The name isn't great, probably `IntervalLike` or
 something of the sort would be better! -/
 def good (S : Set C) : Prop := ∀ u v w : C, u ∈ S → w ∈ S → (u ⟶ v) → (v ⟶ w) → v ∈ S
+
+section Interval
+
+/-- All intervals are good subsets in the categorical sense. -/
+lemma Interval.isGood {α : Type*} [PartialOrder α] (I : Interval α) : good (C := α) I :=
+  fun _u _v _w hu hw f g ↦ I.ordConnected.out hu hw ⟨leOfHom f, leOfHom g⟩
+
+end Interval
 
 variable (hS : good S)
 
@@ -33,15 +40,15 @@ noncomputable def Bump : C ⥤ A where
   map_comp {u v w} f g := by
     --The proof is a case bash. We start with the case that u lies in S
     by_cases hu : u ∈ S
-    · simp only [hu, ↓reduceDite]
+    · simp only [hu, ↓reduceDIte]
       by_cases hv : v ∈ S
       · --Assume v also lies in S
-        simp only [hv, ↓reduceDite]
+        simp only [hv, ↓reduceDIte]
         by_cases hw : w ∈ S
         --If w lies in S then were are done since this ends up being the composition of identity morphisms
-        · simp only [hw, ↓reduceDite, eqToHom_trans]
+        · simp only [hw, ↓reduceDIte, eqToHom_trans]
         --If w isn't in S then we're mapping into the zero element of the target category and there's only one such map
-        · simp only [hw, ↓reduceDite, comp_eqToHom_iff]
+        · simp only [hw, ↓reduceDIte, comp_eqToHom_iff]
           apply hz.from_eq
       · --Next assume v doesn't lie in S
         by_cases hw : w ∈ S
@@ -49,16 +56,16 @@ noncomputable def Bump : C ⥤ A where
           exfalso
           apply hv (hS u v w hu hw f g)
         · --If w ∈ S then again we're mapping into the zero element of the target category and there's only one such map
-          simp only [hw, ↓reduceDite, comp_eqToHom_iff]
+          simp only [hw, ↓reduceDIte, comp_eqToHom_iff]
           apply hz.from_eq
     · --Finally, assume u is not in S. Then we're mapping from the zero element, and there can only be one such map.
-      simp only [hu, ↓reduceDite, eqToHom_comp_iff]
+      simp only [hu, ↓reduceDIte, eqToHom_comp_iff]
       apply hz.to_eq
   map_id x := by
     --Again we can argue by cases, but here things are less tedious
     by_cases hx : x ∈ S
-    · simp only [hx, ↓reduceDite, eqToHom_refl]
-    · simp only [eqToHom_refl, hx, ↓reduceDite]
+    · simp only [hx, ↓reduceDIte, eqToHom_refl]
+    · simp only [eqToHom_refl, hx, ↓reduceDIte]
       rw [eqToHom_comp_iff]
       apply hz.to_eq
 
@@ -98,39 +105,10 @@ definition -/
 
 variable (F : Type) [DivisionRing F]
 
-/-- `ZeroSubMod F` is the zero object in the category of `F`-modules-/
-lemma IsZero_ZeroSubmod : IsZero (ZeroSubmod F) where
-  unique_to Y := sorry
-  unique_from Y := sorry
-
-section Interval
-
-/-A few preliminary results on intervals (there are various approaches to doing intervals in mathlib, and
-the version I'm using here is relatively recent so still is missing some rather basic results - it is
-however hopefully better suited to what we're doing)-/
-
-lemma Interval.mem_iff_mem_coe_set (I : Interval ℝ) (x : ℝ) :
-  x ∈ I ↔ x ∈ (I : Set ℝ) := by simp
-
-lemma NonemptyInterval.mem_of_le_of_le_of_mem_of_mem {I : NonemptyInterval ℝ}
-  {x y z : ℝ} (hxy : x ≤ y) (hyz : y ≤ z) (hx : x ∈ I) (hz : z ∈ I) : y ∈ I := by
-  rw [NonemptyInterval.mem_def] at *
-  exact ⟨le_trans hx.left hxy, le_trans hyz hz.right⟩
-
-/--All intervals are good subsets in the categorical sense-/
-lemma Interval.IsGood (I : Interval ℝ) : good (C:= ℝ) I := by
-  -- This proof could actually be one (long) line but that's a bit unreadable
-  apply Interval.recBotCoe (C := fun J => good (J : Set ℝ)) (n := I)
-  · intro u ; aesop
-  · intro J u v w hu hw f g
-    apply NonemptyInterval.mem_of_le_of_le_of_mem_of_mem (leOfHom f) (leOfHom g) hu hw
-
-end Interval
-
 /--Definition of the action of an interval module on objects of `(ℝ, ≤)`. For an interval
 `I = [a,b]`, `x` is mapped to the `F`-module F if `x` is in `I`, and to `{0}` otherwise. -/
-noncomputable def IntervalModuleObject' (I : Interval ℝ) : PersistenceModule ℝ F :=
-  Bump (ModuleCat.of F F) (IsZero_ZeroSubmod F) (Interval.IsGood I)
+noncomputable def IntervalModuleObject' (I : Interval ℝ) : ℝ ⥤ ModuleCat F :=
+  Bump (ModuleCat.of F F) (isZero_zero _) I.isGood
 
 -- Set up custom notation so we can write the `F`-persistent module of an interval `I` as `F[I]`
 notation3:max F"["I"]" => IntervalModuleObject' F I
