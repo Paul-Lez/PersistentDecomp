@@ -14,7 +14,7 @@ variable (M) in
 @[ext]
 structure DirectSumDecomposition where
   carrier : Set (PersistenceSubmodule M)
-  setIndependent' : SetIndependent carrier
+  sSupIndep' : sSupIndep carrier
   sSup_eq_top' : sSup carrier = ⊤
   --(h : ∀ (x : C), DirectSum.IsInternal (M := M.obj x) (S := Submodule K (M.obj x))
     --(fun (p : PersistenceSubmodule M) (hp : p ∈ S) => p  x))
@@ -24,12 +24,11 @@ namespace DirectSumDecomposition
 
 instance : SetLike (DirectSumDecomposition M) (PersistenceSubmodule M) where
   coe := carrier
-  coe_injective' D₁ D₂ := by cases D₁; cases D₂; sorry
+  coe_injective' D₁ D₂ := by cases D₁; congr!
 
 attribute [-instance] SetLike.instPartialOrder
 
-lemma setIndependent (D : DirectSumDecomposition M) : SetIndependent (SetLike.coe D) :=
-  D.setIndependent'
+protected lemma sSupIndep (D : DirectSumDecomposition M) : sSupIndep (SetLike.coe D) := D.sSupIndep'
 
 lemma sSup_eq_top (D : DirectSumDecomposition M) : sSup (SetLike.coe D) = ⊤ := D.sSup_eq_top'
 lemma not_bot_mem (D : DirectSumDecomposition M) : ⊥ ∉ D := D.not_bot_mem'
@@ -40,7 +39,7 @@ lemma pointwise_sSup_eq_top (D : DirectSumDecomposition M) (x : C) : ⨆ p ∈ D
 
 lemma isInternal (I : DirectSumDecomposition M) (c : C) :
     IsInternal (M := M.obj c) (S := Submodule K (M.obj c)) fun p : I ↦ p.val c := by
-  rw [DirectSum.isInternal_submodule_iff_independent_and_iSup_eq_top]
+  rw [DirectSum.isInternal_submodule_iff_iSupIndep_and_iSup_eq_top]
   constructor
   sorry
   sorry
@@ -108,7 +107,7 @@ lemma RefinementMapSurj' (I : DirectSumDecomposition M) (J : DirectSumDecomposit
     rcases h_contra with ⟨A, h₁, h₂⟩
     exact (h_not_le (⟨A, h₁⟩) h₂)
   have h_disj : Disjoint N₀.val (sSup B) := by
-    exact (SetIndependent.disjoint_sSup J.setIndependent' N₀.prop h_sub h_aux')
+    exact (sSupIndep.disjoint_sSup J.sSupIndep' N₀.prop h_sub h_aux')
   have h_not_bot : N₀.val ≠ ⊥ := by
     intro h_contra
     exact J.not_bot_mem (h_contra ▸ N₀.prop)
@@ -156,7 +155,7 @@ lemma UniqueGE (I : DirectSumDecomposition M) (J : DirectSumDecomposition M)
       exact (h_mem ▸ A.prop)
       subst X
       exact B.prop
-    exact (CompleteLattice.setIndependent_pair h_neq').mp (CompleteLattice.SetIndependent.mono I.setIndependent' h_sub)
+    exact (sSupIndep_pair h_neq').mp (sSupIndep.mono I.sSupIndep' h_sub)
   have h_le' : N.val ≤ A.val ⊓ B.val := by
     apply le_inf
     exact h_le.1
@@ -270,7 +269,7 @@ instance DirectSumDecompLE : PartialOrder (DirectSumDecomposition M) where
       have h_mem : A.val ∈ B := by
         by_contra h_A_not_mem
         have h_aux : Disjoint A.val (sSup B) := by
-          exact (I.setIndependent.disjoint_sSup A.prop h_B₂ h_A_not_mem)
+          exact (I.sSupIndep.disjoint_sSup A.prop h_B₂ h_A_not_mem)
         have h_aux' : sSup B ≤ A.val := h_B₁ ▸ h_N_le_A
         have h_last : sSup B = (⊥ : PersistenceSubmodule M) := by
           rw [disjoint_comm] at h_aux
@@ -298,10 +297,10 @@ If `D` is a direct sum decomposition of `M` and for each `N` appearing in `S` we
 sum decomposition of `N`, we can construct a refinement of `D`.
 -/
 def refinement (B : ∀ N ∈ D, Set (PersistenceSubmodule M))
-    (hB : ∀ N hN, N = sSup (B N hN)) (hB' : ∀ N hN, SetIndependent (B N hN))
+    (hB : ∀ N hN, N = sSup (B N hN)) (hB' : ∀ N hN, sSupIndep (B N hN))
     (hB'' : ∀ N hN, ⊥ ∉ B N hN) : DirectSumDecomposition M where
   carrier := ⋃ N, ⋃ hN, B N hN
-  setIndependent' x hx a ha ha' := by
+  sSupIndep' x hx a ha ha' := by
     sorry
   sSup_eq_top' := by
     sorry
@@ -309,13 +308,13 @@ def refinement (B : ∀ N ∈ D, Set (PersistenceSubmodule M))
 
 lemma refinement_le (B : ∀ N ∈ D, Set (PersistenceSubmodule M))
     (hB : ∀ N hN, N = sSup (B N hN))
-    (hB' : ∀ N hN, SetIndependent (B N hN))
+    (hB' : ∀ N hN, sSupIndep (B N hN))
     (hB'' : ∀ N hN, ⊥ ∉ B N hN) :
     refinement B hB hB' hB'' ≤ D := sorry
 
 lemma refinement_lt_of_exists_ne_singleton (B : ∀ N ∈ D, Set (PersistenceSubmodule M))
     (hB : ∀ N hN, N = sSup (B N hN))
-    (hB' : ∀ N hN, SetIndependent (B N hN))
+    (hB' : ∀ N hN, sSupIndep (B N hN))
     (hB'' : ∀ N hN, ⊥ ∉ B N hN)
     (H : ∃ (N : PersistenceSubmodule M) (hN : N ∈ D), B N hN ≠ {N}) :
     refinement B hB hB' hB'' < D := sorry

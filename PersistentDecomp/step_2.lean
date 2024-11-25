@@ -94,7 +94,7 @@ lemma isInternal_chainBound (hT : IsChain LE.le T) (c : C) : IsInternal fun l : 
 
 /-- The `M[λ]` are linearly independent -/
 lemma lambdas_indep (hT : IsChain LE.le T) :
-    CompleteLattice.SetIndependent {M[l] | (l : L T) (_ : ¬ IsBot M[l])} := by
+    sSupIndep {M[l] | (l : L T) (_ : ¬ IsBot M[l])} := by
   intro a b ha hb hab
   sorry
 
@@ -107,7 +107,7 @@ lemma sSup_lambdas_eq_top (hT : IsChain LE.le T) :
 def DirectSumDecomposition_of_chain (hT : IsChain LE.le T) : DirectSumDecomposition M where
   carrier := {M[l] | (l : L T) (_ : ¬ IsBot M[l])}
   sSup_eq_top' := sSup_lambdas_eq_top hT
-  setIndependent' := lambdas_indep hT
+  sSupIndep' := lambdas_indep hT
   not_bot_mem' := sorry
 
 /-- The set `𝓤` is an upper bound for the chain `T` -/
