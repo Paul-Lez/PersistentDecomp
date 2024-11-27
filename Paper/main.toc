@@ -1,3 +1,0 @@
-\changetocdepth {2}
-\babel@toc {english}{}
-\contentsline {chapter}{Contents}{i}{section*.1}%
