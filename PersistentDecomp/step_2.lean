@@ -2,6 +2,8 @@ import Mathlib.CategoryTheory.Limits.Types
 import PersistentDecomp.DirectSumDecompositionDual
 import PersistentDecomp.Mathlib.Algebra.DirectSum.Basic
 import Mathlib.CategoryTheory.Limits.Types
+--import Mathlib
+--import Mathlib.Order.Partition.Finpartition
 
 open CategoryTheory Classical CategoryTheory.Limits DirectSum DirectSumDecomposition
 
@@ -11,7 +13,7 @@ variable {C : Type} [Category.{0, 0} C] {K : Type} [DivisionRing K] {M : C ⥤ M
 get Step 2 done. Most of the work is setting the stage so
 we can apply Zorn's lemma.-/
 
-/- For now we work with types in the 0-th universe. To make the code universe polymorphic we'll need to
+/- For now we work with types in the 1-th universe. To make the code universe polymorphic we'll need to
 make a few edits below-/
 
 section Chains
@@ -21,7 +23,7 @@ decompositions. Since these are defined in terms of sets, we could construct the
 inverse limit explicitly but I think this would be really painful and messy...-/
 
 /-- Here we write some code to go from chains in directSumDecompositions to diagrams in the category of types-/
-noncomputable def ToTypeCat : DirectSumDecomposition M ⥤ Type  where
+noncomputable def ToTypeCat : DirectSumDecomposition M ⥤ Type where
   obj D := D
   -- Define the maps f_{IJ} induced by "J refines I"
   map {J I} f := by
@@ -60,7 +62,6 @@ notation3:max "M["l"]" => chainBound l
 notation3:max "M["l"]_[" c "]" => chainBound l c
 
 lemma chainBound_le : M[l] ≤ (Λ I l).val := iInf_le ..
-
 
 noncomputable def limit_elt_mk (hT : IsChain LE.le T) (f : T → PersistenceSubmodule M)
   (h_le : ∀ (I J : T), I ≤ J → f J ≤ f I) (h_mem : ∀ I : T, (f I) ∈ I.val) : (L T) := by
@@ -127,6 +128,51 @@ lemma zorny_lemma (N : PersistenceSubmodule M) : ∃ (D : DirectSumDecomposition
 end Chains
 
 section
+
+section Indecomposable
+
+/--This is the definition of indecomposability we should be using since it's more general
+(works at a lattice theoretic level)-/
+-- TODO: we don't need `a ≤ N` and `b ≤ N` in the implications
+def Indecomposable' (N : PersistenceSubmodule M) : Prop :=
+  ∀ a b : PersistenceSubmodule M, a ≤ N → b ≤ N → a ⊓ b = ⊥ → a ⊔ b = N → a = ⊥ ∨ b = ⊥
+
+section
+
+section LatticeRefinements
+
+variable {α : Type*} [CompleteLattice α] [DistribLattice α] [BoundedOrder α]
+
+structure refinement (S : Set α) where
+    (carrier : Set (Set α))
+    (carrier_span : ∀ a ∈ S, ∃! D ∈ carrier, a = sSup D)
+    (carrier_indep : ∀ D ∈ carrier, CompleteLattice.SetIndependent D)
+    (bot_not_mem : ∀ D ∈ carrier, ⊥ ∉ D)
+
+instance  (S : Set α) : SetLike (refinement S) (Set α) where
+  coe := refinement.carrier
+  coe_injective' D₁ D₂ := by cases D₁; cases D₂; sorry
+
+#check Finpartition
+
+def decomposition_of_refinement {S : Set α} (R : refinement S) : Set α := ⋃ D ∈ R, D
+
+lemma forall_indep {S D : Set α}
+    (R : refinement S) :
+    CompleteLattice.SetIndependent (decomposition_of_refinement R) := by
+  intro a ha b hb hb'
+  simp_rw [decomposition_of_refinement, Set.mem_iUnion] at ha
+  obtain ⟨I, hI, hI'⟩ := ha
+  rw [decomposition_of_refinement] at hb'
+  sorry
+
+lemma sSup_eq_top' {S : Set α} (R : refinement S):
+    sSup (decomposition_of_refinement R) = sSup S := by
+  sorry
+
+lemma bot_not_mem {S : Set α} (R : refinement S) :
+    ⊥ ∉ decomposition_of_refinement R := by
+  sorry
 
 /- TODO in this section: construct the persistence module associated to a submodule,
 and show that submodules that are atoms yield indecomposable persistence modules-/
