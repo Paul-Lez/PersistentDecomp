@@ -1,1 +1,6 @@
 /.lake
+*.out
+*.log
+*.aux
+*.gz
+*.toc
