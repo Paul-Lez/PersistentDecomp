@@ -17,7 +17,7 @@ The main result we currently aim to prove is Theorem 1.1: *Any pointwise finite-
 
 ## Contents
 
-The code is contained in the directory `PH_formalisation`. It contains the following subdirectories:
+The code is contained in the directory `PersistentDecomp`. It contains the following subdirectories:
 * `Mathlib`: contains material missing from current files in Mathlib.
 * `Prereqs`: contains basic definitions and properties of persistence modules.
 

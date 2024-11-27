@@ -22,10 +22,10 @@ title: Arithmetic Progressions - Almost Periodicity
 #email: your-email@example.com
 description: A digitisation of the Kelley-Meka bound on Roth numbers
 baseurl: "" # the subpath of your site, e.g. /blog
-url: "https://Paul-Lez.github.io/PH_formalisation/" # the base hostname & protocol for your site, e.g. http://example.com
+url: "https://Paul-Lez.github.io/PersistentDecomp/" # the base hostname & protocol for your site, e.g. http://example.com
 #twitter_username: jekyllrb
 github_username: Paul-Lez
-repository: Paul-Lez/PH_formalisation
+repository: Paul-Lez/PersistentDecomp
 
 # Build settings
 remote_theme: pages-themes/cayman@v0.2.0

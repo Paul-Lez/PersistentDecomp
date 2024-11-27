@@ -38,7 +38,7 @@ jobs:
           grep -r --files-without-match 'import PersistentDecomp' PersistentDecomp | sort > 1.txt
           grep -r --files-with-match 'sorry' PersistentDecomp | sort > 2.txt
           mkdir -p docs/_includes
-          comm -23 1.txt 2.txt | sed -e 's/^\(.*\)$/- [`\1`](https:\/\/github.com\/Paul-Lez\/PH_formalisation\/blob\/master\/\1)/' > docs/_includes/files_to_upstream.md
+          comm -23 1.txt 2.txt | sed -e 's/^\(.*\)$/- [`\1`](https:\/\/github.com\/Paul-Lez\/PersistentDecomp\/blob\/master\/\1)/' > docs/_includes/files_to_upstream.md
           rm 1.txt 2.txt
 
       - name: Count sorries
