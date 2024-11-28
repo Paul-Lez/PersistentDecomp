@@ -70,24 +70,24 @@ jobs:
       - name: Build documentation
         run: ~/.elan/bin/lake -R -Kenv=dev build PersistentDecomp:docs
 
-      - name: Build blueprint and copy to `docs/blueprint`
-        uses: xu-cheng/texlive-action@v2
-        with:
-          docker_image: ghcr.io/xu-cheng/texlive-full:20231201
-          run: |
-            apk update
-            apk add --update make py3-pip git pkgconfig graphviz graphviz-dev gcc musl-dev
-            git config --global --add safe.directory $GITHUB_WORKSPACE
-            git config --global --add safe.directory `pwd`
-            python3 -m venv env
-            source env/bin/activate
-            pip install --upgrade pip requests wheel
-            pip install pygraphviz --global-option=build_ext --global-option="-L/usr/lib/graphviz/" --global-option="-R/usr/lib/graphviz/"
-            pip install leanblueprint
-            leanblueprint pdf
-            cp blueprint/print/print.pdf docs/blueprint.pdf
-            leanblueprint web
-            cp -r blueprint/web docs/blueprint
+      # - name: Build blueprint and copy to `docs/blueprint`
+      #   uses: xu-cheng/texlive-action@v2
+      #   with:
+      #     docker_image: ghcr.io/xu-cheng/texlive-full:20231201
+      #     run: |
+      #       apk update
+      #       apk add --update make py3-pip git pkgconfig graphviz graphviz-dev gcc musl-dev
+      #       git config --global --add safe.directory $GITHUB_WORKSPACE
+      #       git config --global --add safe.directory `pwd`
+      #       python3 -m venv env
+      #       source env/bin/activate
+      #       pip install --upgrade pip requests wheel
+      #       pip install pygraphviz --global-option=build_ext --global-option="-L/usr/lib/graphviz/" --global-option="-R/usr/lib/graphviz/"
+      #       pip install leanblueprint
+      #       leanblueprint pdf
+      #       cp blueprint/print/print.pdf docs/blueprint.pdf
+      #       leanblueprint web
+      #       cp -r blueprint/web docs/blueprint
 
       - name: Move documentation to `docs/docs`
         run: |
