@@ -144,22 +144,19 @@ section LatticeRefinements
 variable {α : Type*} [CompleteLattice α] [DistribLattice α] [BoundedOrder α]
 
 structure refinement (S : Set α) where
-    (carrier : Set (Set α))
-    (carrier_span : ∀ a ∈ S, ∃! D ∈ carrier, a = sSup D)
-    (carrier_indep : ∀ D ∈ carrier, CompleteLattice.SetIndependent D)
-    (bot_not_mem : ∀ D ∈ carrier, ⊥ ∉ D)
+  carrier : Set (Set α)
+  carrier_span : ∀ a ∈ S, ∃! D ∈ carrier, a = sSup D
+  carrier_indep : ∀ D ∈ carrier, sSupIndep D
+  bot_not_mem : ∀ D ∈ carrier, ⊥ ∉ D
 
-instance  (S : Set α) : SetLike (refinement S) (Set α) where
+instance (S : Set α) : SetLike (refinement S) (Set α) where
   coe := refinement.carrier
-  coe_injective' D₁ D₂ := by cases D₁; cases D₂; sorry
-
-#check Finpartition
+  coe_injective' D₁ := by cases D₁; congr!
 
 def decomposition_of_refinement {S : Set α} (R : refinement S) : Set α := ⋃ D ∈ R, D
 
-lemma forall_indep {S D : Set α}
-    (R : refinement S) :
-    CompleteLattice.SetIndependent (decomposition_of_refinement R) := by
+lemma forall_indep {S D : Set α} (R : refinement S) :
+    sSupIndep (decomposition_of_refinement R) := by
   intro a ha b hb hb'
   simp_rw [decomposition_of_refinement, Set.mem_iUnion] at ha
   obtain ⟨I, hI, hI'⟩ := ha
@@ -177,4 +174,4 @@ lemma bot_not_mem {S : Set α} (R : refinement S) :
 /- TODO in this section: construct the persistence module associated to a submodule,
 and show that submodules that are atoms yield indecomposable persistence modules-/
 
-end
+end LatticeRefinements
