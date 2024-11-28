@@ -177,3 +177,25 @@ In the paper this is solved by picking $n_x = n_y = n$ large enough to obtain va
 A similar condition must hold for any morphism $\alpha : x \rightarrow z \in \mathcal{C}$. In particular, this seems to me like it could yield a set of conditions of the form $n_x \geq m, \forall m \in \N$ in which case the proof no longer works.
 
 
+\section{Simplifying the Botnan and Crawley-Boevey argument}
+
+Let $K$ be a field and $\C$ be a category.
+
+\begin{lem}\label{lem:refinement-finite-height}
+  Let $M$ be a finite dimensional $K$-vector space. Then the refinement order of direct sum decompositions of $M$ has finite height. Precisely,
+  $$\mathrm{height}(\mathrm{DirectSumDecomposition_K(M)}) \le \dim_K(M) - 1$$
+\end{lem}
+\begin{proof}
+  sorry
+\end{proof}
+
+\begin{prop}
+  Let $M$ be a functor $\C \to \Vect$ and $T$ be a chain of direct sum decomposition of $M$. Then $T$ has an upper bound.
+\end{prop}
+\begin{proof}
+  For all $c : \C$, the chain
+  $$T_c := \{t_c | t \in T\}$$
+  is a chain in the refinement order of direct sum decompositions of $M_c$, which has finite height by Lemma \ref{lem:refinement-finite-height}. $T_c$ therefore has a maximal element $u_c$.
+
+  Let's now prove that $u$ is a direct sum decomposition of $M$. All we need to check is that 
+\end{proof}

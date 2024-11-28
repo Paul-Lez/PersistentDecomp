@@ -1,6 +1,10 @@
 /.lake
-*.out
-*.log
 *.aux
+*.fdb_latexmk
+*.fls
+*.log
 *.gz
+*.out
+*.synctex(busy)
+*.synctex.gz
 *.toc
