@@ -10,16 +10,14 @@ In this file we define persistence submodules and we equip them with a complete 
 
 open CategoryTheory
 
-/- For now we work with types in the 0-th universe. To make the code universe polymorphic we'll need to
-make a few edits below-/
-variable {C : Type} [Category.{0, 0} C] {K : Type} [DivisionRing K] {M : C ⥤ ModuleCat K} {c d : C}
+variable {C : Type} [Category C] {K : Type} [DivisionRing K] {M : C ⥤ ModuleCat K} {c d : C}
 
 variable (M) in
+/--A persistence submodule of a persistence module `M` is a family of submodules `N_c ≤ M_c`
+indexed by `c : C` that is compatible with the transition maps of `M`, in the sense that for
+all morphisms `c ⟶ d` in `C`, the induced morphism `M_c ⟶ M_d` sends `N_c` into `N_d`.-/
 structure PersistenceSubmodule where
   toFun (c : C) : Submodule K (M.obj c)
-  /-- The inclusion of the submodules `N c` and `N d` is compatible with the "transition" maps of
-  the functor `M`, i.e if we have `f : c ⟶ d` then the image of `N c` by `M f` lies in the
-  submodule `N d`. -/
   map_le' {c d : C} (f : c ⟶ d) : (toFun c).map (M.map f) ≤ toFun d
 
 namespace PersistenceSubmodule
@@ -33,12 +31,15 @@ functor `M`, i.e if we have `f : c ⟶ d` then the image of `N c` by `M f` lies 
 `N d`. -/
 lemma map_le (N : PersistenceSubmodule M) (f : c ⟶ d) : (N c).map (M.map f) ≤ N d := N.map_le' _
 
+/--We can check equality of persistence modules pointwise-/
 @[ext]
 lemma ext {N₁ N₂ : PersistenceSubmodule M} (h : ∀ c, N₁ c = N₂ c) : N₁ = N₂ := DFunLike.ext _ _ h
 
-/-- Persistence submodules are ordered pointwise. -/
+/--Persistence submodules are ordered pointwise. -/
 instance : PartialOrder (PersistenceSubmodule M) := PartialOrder.lift (⇑) DFunLike.coe_injective
 
+/-- There is a notion of a maximum of two persistence submodules `N N'` , namely the
+(pointwise) sum `c ↦ N_c + N'_c`-/
 instance : Max (PersistenceSubmodule M) where
   max N₁ N₂ := {
     toFun := fun c ↦ N₁ c ⊔ N₂ c
@@ -47,6 +48,8 @@ instance : Max (PersistenceSubmodule M) where
       rw [Submodule.map_sup]
       apply sup_le_sup (N₁.map_le f) (N₂.map_le f) }
 
+/-- There is a notion of a maximum of two persistence submodules `N N'` , namely the
+(pointwise) intersection `c ↦ N_c + N'_c`-/
 instance : Min (PersistenceSubmodule M) where
   min N₁ N₂ := {
     toFun := fun c ↦ N₁ c ⊓ N₂ c
@@ -61,7 +64,7 @@ instance : Min (PersistenceSubmodule M) where
 lemma sup_apply (N₁ N₂ : PersistenceSubmodule M) (c : C) : (N₁ ⊔ N₂) c = N₁ c ⊔ N₂ c := rfl
 lemma inf_apply (N₁ N₂ : PersistenceSubmodule M) (c : C) : (N₁ ⊓ N₂) c = N₁ c ⊓ N₂ c := rfl
 
-/-- There's a notion of the supremum of two submodules, given by `⊕`,
+/-- There's a notion of the supremum of two submodules, given by `+`,
 and a notion of an infimum, given by `∩`. -/
 instance : Lattice (PersistenceSubmodule M) :=
   DFunLike.coe_injective.lattice _ coe_sup coe_inf
@@ -93,7 +96,7 @@ instance : SupSet (PersistenceSubmodule M) where
     toFun := ⨆ N ∈ S, N
     map_le' := by
       intro c d f
-      -- rw [Submodule.map_iSup]
+      rw [iSup_apply, Submodule.map_iSup, iSup_le_iff]
       sorry }
 
 /-- There's a notion of infimums over arbitrary sets of submodules. -/
@@ -129,17 +132,5 @@ lemma iInf_apply {ι : Sort*} (f : ι → PersistenceSubmodule M) (c : C) :
 /-- The sups and infs over possibly infinite sets are compatible with the lattice structure -/
 instance : CompleteLattice (PersistenceSubmodule M) :=
   DFunLike.coe_injective.completeLattice _ coe_sup coe_inf coe_sSup coe_sInf coe_top coe_bot
-
--- lemma setIndependent_iff_setIndependent_forall
---     (S : Set (PersistenceSubmodule M)) :
---     CompleteLattice.SetIndependent S ↔
---     ∀ c : C, CompleteLattice.SetIndependent {(N.toFun c) | (N : PersistenceSubmodule M) (hN : N ∈ S)} := by
---   sorry
-
--- lemma sSu
---     (S : Set (PersistenceSubmodule M)) :
---     CompleteLattice.SetIndependent S ↔ ∀ c : C, CompleteLattice.SetIndependent { (N.toFun c) | (N : PersistenceSubmodule M) (hN : N ∈ S)} := by
---   sorry
-
 
 end PersistenceSubmodule
