@@ -30,6 +30,9 @@ Once Theorem 1.1 is proven, we hope to be able to prove Theorem 1.2: *Pointwise 
 
 The current implementation views persistence modules and persistence submodules as purely separate objects. It should be a future goal to unify them. 
 
+On top of the new developments, there are many basic lemmas needed for this project that are currently missing from mathlib.
+
+
 ## Acknowledgements
 
 Our project relies on mathlib and we thank all who have contributed on it in some manner for their help. 
