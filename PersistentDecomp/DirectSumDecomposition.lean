@@ -20,6 +20,8 @@ variable {C : Type} [Category.{0, 0} C] {K : Type} [DivisionRing K] {M : C ⥤ M
 section DirectSumDecomposition
 
 variable (M) in
+/--A direct sum decompositon of `M ` is a set of non-zero submodules
+that are linearly independent and whose supremum is the whole of `M `-/
 @[ext]
 structure DirectSumDecomposition where
   carrier : Set (PersistenceSubmodule M)
@@ -134,8 +136,7 @@ lemma RefinementMapSurj' (I : DirectSumDecomposition M) (J : DirectSumDecomposit
     apply lt_of_lt_of_le h_gt h_ge
   exact (lt_self_iff_false (⊤ : PersistenceSubmodule M)).mp contra
 
-/--The refinement relation defines a preorder on direct sum decompositions of `M`, i.e.
-this relation is reflexive and transitive.-/
+/--The refinement relation defines a preorder on direct sum decompositions of `M` via `D₁ ≤ D₂` if and only if `D₂` is a refinement of `D₁` i.e. this relation is reflexive and transitive. -/
 instance : Preorder (DirectSumDecomposition M) where
   le D₁ D₂ := IsRefinement D₂ D₁
   --D₁ ≤ D₂ iff D₂ refines D₁.
@@ -239,7 +240,7 @@ lemma refinement_le (B : ∀ N ∈ D, Set (PersistenceSubmodule M))
     (hB : ∀ N hN, N = sSup (B N hN))
     (hB' : ∀ N hN, sSupIndep (B N hN))
     (hB'' : ∀ N hN, ⊥ ∉ B N hN) :
-    refinement B hB hB' hB'' ≤ D := sorry
+    D ≤ refinement B hB hB' hB'' := sorry
 
 /--If one of the decompositions of the `N`'s is non-trivial then `refinement B hB hB' hB''`
 is a strict refinement of `M `-/
@@ -248,12 +249,12 @@ lemma refinement_lt_of_exists_ne_singleton (B : ∀ N ∈ D, Set (PersistenceSub
     (hB' : ∀ N hN, sSupIndep (B N hN))
     (hB'' : ∀ N hN, ⊥ ∉ B N hN)
     (H : ∃ (N : PersistenceSubmodule M) (hN : N ∈ D), B N hN ≠ {N}) :
-    refinement B hB hB' hB'' < D := sorry
+    D < refinement B hB hB' hB'' := sorry
 
 /--If `D` is a direct sum decomposition that is maximal with respect to refinements
 then every submodule that appears in `D` is indecomposable. -/
 lemma Indecomposable_of_mem_Min_Direct_sum_decomposition
-    (D : DirectSumDecomposition M) (N : PersistenceSubmodule M) (hN : N ∈ D) (hmax : IsMin D) :
+    (D : DirectSumDecomposition M) (N : PersistenceSubmodule M) (hN : N ∈ D) (hmax : IsMax D) :
     Indecomposable N := by
   by_contra hNotMax
   simp only [_root_.Indecomposable, not_forall, Classical.not_imp, not_or] at hNotMax
@@ -261,8 +262,8 @@ lemma Indecomposable_of_mem_Min_Direct_sum_decomposition
   let B (N) (hN : N ∈ D) : Set (PersistenceSubmodule M) := if N = x ⊔ y then {x, y} else {N}
   set newD : DirectSumDecomposition M := refinement
     B sorry sorry sorry
-  have contra : ¬ IsMin D := by
-    simp only [not_isMin_iff]
+  have contra : ¬ IsMax D := by
+    simp only [not_isMax_iff]
     use newD
     apply refinement_lt_of_exists_ne_singleton
     use x ⊔ y, hN
