@@ -2,15 +2,22 @@ import Mathlib.Algebra.Category.ModuleCat.Basic
 import Mathlib.Data.Real.Basic
 import PersistentDecomp.Mathlib.Order.Interval.Basic
 
+/-!
+# Bump Functors and Interval Modules
+
+In this file we the notion of a "bump functor", i.e. a functor `C ⥤ D` that
+sends a subset `I` of `C` to some constant `d : D` and the complement of `I` to zero.
+We then use this to construct interval modules.
+-/
+
 open CategoryTheory Classical CategoryTheory.Limits
 
 universe u v
 variable {A : Type u} [Category.{v} A]
 variable {C : Type*} [Category C] (e : A) {S : Set C} {z : A} (hz : IsZero z)
 
-/--This property should be the categorical version of being an interval (or some form of connectedness/convexity) but
-I'm not sure if it is common in the literature. The name isn't great, probably `IntervalLike` or
-something of the sort would be better! -/
+/--A subset `S ⊆ C` is good if for any pairs of morphisms `(u ⟶ v)` and `(v ⟶ w)` such that
+`u, w ∈ S`, we must have `v ∈ S`. -/
 def good (S : Set C) : Prop := ∀ u v w : C, u ∈ S → w ∈ S → (u ⟶ v) → (v ⟶ w) → v ∈ S
 
 section Interval
@@ -77,8 +84,6 @@ We can also show functoriality in the choice of the element `e`.-/
 
 section API
 
---In this section we write a bit of API for the Bump functor so it's easier to use
-
 @[simp]
 lemma Bump_apply_of_mem {x : C} (hx : x ∈ S) :
   (Bump e hz hS).obj x = e := by
@@ -93,32 +98,23 @@ lemma IsZero_Bump_apply_of_not_mem {x : C} (hx : x ∉ S) :
   IsZero ((Bump e hz hS).obj x) := by
   simpa only [Bump_obj, hx, ↓reduceIte]
 
---TODO: write more API e.g for the morphisms (one lemma for each of the possible cases...)
-
 end API
 
-namespace BumpPersistence
-
-/- In this section we construct persistent modules using the Bump functor. I've
-put all this in the `BumpPersistance` namespace to avoid clashes with the original
-definition -/
+section IntervalModule
 
 variable (F : Type) [DivisionRing F]
 
 /--Definition of the action of an interval module on objects of `(ℝ, ≤)`. For an interval
 `I = [a,b]`, `x` is mapped to the `F`-module F if `x` is in `I`, and to `{0}` otherwise. -/
-noncomputable def IntervalModuleObject' (I : Interval ℝ) : ℝ ⥤ ModuleCat F :=
+noncomputable def IntervalModuleObject (I : Interval ℝ) : ℝ ⥤ ModuleCat F :=
   Bump (ModuleCat.of F F) (isZero_zero _) I.isGood
 
 -- Set up custom notation so we can write the `F`-persistent module of an interval `I` as `F[I]`
-notation3:max F"["I"]" => IntervalModuleObject' F I
+notation3:max F"["I"]" => IntervalModuleObject F I
 
 /--The interval module of the empty interval is the zero object in the category of persistent modules-/
-lemma IsZero_IntervalModuleObject'_zero : IsZero (IntervalModuleObject' F (⊥ : Interval ℝ)) := by
+lemma IsZero_IntervalModuleObject'_zero : IsZero (IntervalModuleObject F (⊥ : Interval ℝ)) := by
   sorry
-
-/-Bunch of API to do here, e.g. the Interval module of a disjoint union is a sum, the interval module
-of ℝ is just the constant functor sending objects to `F` and morphisms to the identity, etc-/
 
 
 /--The map of interval modules induced by an inclusion of intervals. To construct this we
@@ -137,4 +133,4 @@ lemma IntervalModuleMorphism_identity (I : Interval ℝ) :
   IntervalModuleMorphism F (le_refl I) = 𝟙 _ := by
   sorry
 
-namespace BumpPersistence
+end IntervalModule

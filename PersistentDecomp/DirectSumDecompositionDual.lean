@@ -16,8 +16,6 @@ structure DirectSumDecomposition where
   carrier : Set (PersistenceSubmodule M)
   sSupIndep' : sSupIndep carrier
   sSup_eq_top' : sSup carrier = ⊤
-  --(h : ∀ (x : C), DirectSum.IsInternal (M := M.obj x) (S := Submodule K (M.obj x))
-    --(fun (p : PersistenceSubmodule M) (hp : p ∈ S) => p  x))
   not_bot_mem' : ⊥ ∉ carrier
 
 namespace DirectSumDecomposition
@@ -338,79 +336,6 @@ lemma Indecomposable_of_mem_Min_Direct_sum_decomposition
     --This should be easy
     sorry
   sorry
-
--- /-- If `N` is a submodule of `M` that is part of a minimal direct sum decomposition, then `N` is indecomposable -/
--- lemma Indecomposable_of_mem_Min_Direct_sum_decomposition'
---   (D : DirectSumDecomposition M) (N : PersistenceSubmodule M) (hN : N ∈ D) (hmax : IsMin D) : Indecomposable N := by
---   by_contra hNotMax
---   rw [Indecomposable] at hNotMax
---   simp only [not_forall, Classical.not_imp, not_or, exists_and_left] at hNotMax
---   obtain ⟨x, hx, y, hx', hy', hxy, hxy', hy⟩ := hNotMax
---   set newD : DirectSumDecomposition M := refinement
---     (fun (M : PersistenceSubmodule M) (hM : M ∈ D) => if M = N then {x, y} else {M}) sorry sorry sorry
-
---   set S : Set (PersistenceSubmodule M) := (D \ {N}) ∪ {x, y} with hS
---   have h : ∀ (x : C), IsInternal (fun p : S => (p.val  x : Submodule _ _)) := by
---     intro x'
---     rw [isInternal_submodule_iff_independent_and_iSup_eq_top]
---     constructor
---     · --this is going to be a bit of a pain to prove
---       intro a b hab hb'
---       by_cases ha : a = x
---       · have : b ≤ N  x' := le_trans (ha ▸ hab) (hx' x')
---         --this should now follow from the independence of the direct sum decomposition `D`
---         --have := calc b ≤ (⨆ j, ⨆ (_ : j ≠ a), (fun (p : S) ↦ p.val  x') j) := by sorry
---         --_ ≤ (⨆ j, ⨆ (_ : j ≠ a), (fun (p : D) ↦ p.val  x') j)
---         sorry
---       · by_cases hb : a = y
---         · have : b ≤ N  x' := le_trans (hb ▸ hab) (hy' x')
---           --this should now follow from the independence of the direct sum decomposition `D`
---           sorry
---           --Since the sum is over j ≠ a, it will include `x ⊔ y = N` so we can rewrite it in a nicer way
---         · have : (⨆ j, ⨆ (_ : j ≠ a), (fun (p : S) ↦ p.val  x') j) =
---             ⨆ j, ⨆ (_ : j.val ≠ a.val), (fun (p : D) => p.val  x') j := by
---             sorry
---           --this should now follow from the independence of the direct sum decomposition `D`
---           rw [this] at hb'
---           sorry
---       --The direct sum is indexed over all `j` in `S` so we can rewrite it in a nicer way by using `x ⊔ y = N`.
---     · calc (⨆ (p : S), p.val  x') = (⨆ (p : D), p.val  x') := by sorry
---       _ = ⊤ := ((isInternal_submodule_iff_independent_and_iSup_eq_top _).mp <| D.h x').right
---   let Cex : DirectSumDecomposition M := ⟨S, h, sorry⟩
---   have contra : ¬ IsMin D := by
---     simp only [not_isMin_iff]
---     use Cex
---     apply lt_of_le_of_ne
---     --this is very golfable
---     · set d : D → Set (PersistenceSubmodule M) := fun (I : D) ↦ if I.val = N then {x, y} else {I.val} with hd
---       use d, fun I => ?_, fun I => ?_
---       · by_cases hI : I.val = N
---         · simp only [hd, hI, ↓reduceIte, sSup_insert, csSup_singleton, ←  hxy']
---         · simp only [hd, hI, ↓reduceIte, sSup_insert, csSup_singleton]
---       · by_cases hI : I.val = N
---         · simpa only [hd, hI, ↓reduceIte, sSup_insert, csSup_singleton, hS] using Set.subset_union_right
---         · simp only [hd, hI, ↓reduceIte, sSup_insert, csSup_singleton, Set.singleton_subset_iff]
---           apply Set.mem_union_left _ (Set.mem_diff_of_mem I.prop _)
---           rw [Set.mem_singleton_iff]
---           exact hI
---     · --this can probably be golfed with the right API
---       intro h
---       have : D ≠ Cex := by
---         simp only [ne_eq]
---         intro h'
---         have: N ∉ S := by
---           intro h''
---           rw [hS, Set.mem_union, Set.mem_insert_iff, Set.mem_singleton_iff, Set.mem_diff, Set.mem_singleton_iff] at h''
---           simp only [not_true_eq_false, and_false, false_or] at h''
---           rcases h'' with h'' | h''
---           · rw [← h'', inf_eq_right.mpr hy'] at hxy
---             exact hy hxy
---           · rw [← h'', inf_eq_left.mpr hx'] at hxy
---             exact hx hxy
---         rw [h'] at hN
---         exact this hN
---       exact this (congrArg DirectSumDecomposition h.symm)
---   exact contra hmax
 
 end Indecomposable
 
