@@ -8,5 +8,5 @@ import PersistentDecomp.Mathlib.Order.Interval.Basic
 import PersistentDecomp.Mathlib.Order.SupIndep
 import PersistentDecomp.Prereqs.Indecomposable
 import PersistentDecomp.Prereqs.PersistenceSubmodule
-import PersistentDecomp.step_2
-import PersistentDecomp.thm1_1
+import PersistentDecomp.EndoRingIsLocal
+import PersistentDecomp.MaximalDecompExists
