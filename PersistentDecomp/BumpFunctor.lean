@@ -38,9 +38,9 @@ noncomputable def Bump : C ⥤ A where
   obj x := if x ∈ S then e else z
   map {x y} _ :=
     if hx : x ∈ S then
-      --here we have to be a bit careful: we want the morphism to be the zero map, but this goes from
-      -- `Bump x` to `z` so we need to compose with the "identity map" `z ⟶ Bump y`, i.e. we need
-      -- to use `eqToHom`, which converts equalities of objects to morphisms
+      -- here we have to be a bit careful: we want the morphism to be the zero map, but this goes
+      -- from `Bump x` to `z` so we need to compose with the "identity map" `z ⟶ Bump y`, i.e. we
+      -- need to use `eqToHom`, which converts equalities of objects to morphisms
       if hy : y ∈ S then eqToHom (by simp only [hx, ↓reduceIte, hy]) else
         hz.from_ _ ≫ eqToHom (by simp only [hx, ↓reduceIte, hy])
       else eqToHom (by simp only [hx, ↓reduceIte]) ≫ hz.to_ _
@@ -52,9 +52,11 @@ noncomputable def Bump : C ⥤ A where
       · --Assume v also lies in S
         simp only [hv, ↓reduceDIte]
         by_cases hw : w ∈ S
-        --If w lies in S then were are done since this ends up being the composition of identity morphisms
+        -- If w lies in S then were are done since this ends up being the composition of identity
+        -- morphisms
         · simp only [hw, ↓reduceDIte, eqToHom_trans]
-        --If w isn't in S then we're mapping into the zero element of the target category and there's only one such map
+        -- If w isn't in S then we're mapping into the zero element of the target category and
+        -- there's only one such map
         · simp only [hw, ↓reduceDIte, comp_eqToHom_iff]
           apply hz.from_eq
       · --Next assume v doesn't lie in S
@@ -62,10 +64,12 @@ noncomputable def Bump : C ⥤ A where
         · --The case w ∈ S is empty since S is a "good" subset
           exfalso
           apply hv (hS u v w hu hw f g)
-        · --If w ∈ S then again we're mapping into the zero element of the target category and there's only one such map
+        · -- If w ∈ S then again we're mapping into the zero element of the target category and
+          -- there's only one such map
           simp only [hw, ↓reduceDIte, comp_eqToHom_iff]
           apply hz.from_eq
-    · --Finally, assume u is not in S. Then we're mapping from the zero element, and there can only be one such map.
+    · -- Finally, assume u is not in S. Then we're mapping from the zero element, and there can only
+      -- be one such map.
       simp only [hu, ↓reduceDIte, eqToHom_comp_iff]
       apply hz.to_eq
   map_id x := by
@@ -112,7 +116,8 @@ noncomputable def IntervalModuleObject (I : Interval ℝ) : ℝ ⥤ ModuleCat F 
 -- Set up custom notation so we can write the `F`-persistent module of an interval `I` as `F[I]`
 notation3:max F"["I"]" => IntervalModuleObject F I
 
-/--The interval module of the empty interval is the zero object in the category of persistent modules-/
+/--The interval module of the empty interval is the zero object in the category of persistent
+modules. -/
 lemma IsZero_IntervalModuleObject'_zero : IsZero (IntervalModuleObject F (⊥ : Interval ℝ)) := by
   sorry
 

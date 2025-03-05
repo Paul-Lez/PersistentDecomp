@@ -20,8 +20,6 @@ open CompleteLattice hiding sSup_le -- TODO: Fix in mathlib
 
 variable {C : Type} [Category.{0, 0} C] {K : Type} [DivisionRing K] {M : C ⥤ ModuleCat K}
 
-section DirectSumDecomposition
-
 variable (M) in
 /--A direct sum decompositon of `M ` is a set of non-zero submodules
 that are linearly independent and whose supremum is the whole of `M `-/
@@ -53,14 +51,14 @@ lemma isInternal (I : DirectSumDecomposition M) (c : C) :
     IsInternal (M := M.obj c) (S := Submodule K (M.obj c)) fun p : I ↦ p.val c := by
   rw [DirectSum.isInternal_submodule_iff_iSupIndep_and_iSup_eq_top]
   constructor
-  sorry
+  · sorry
   sorry
   --rw [← iSup_apply, ← sSup_eq_iSup', I.sSup_eq_top]
   --rfl
 
 variable {M : C ⥤ ModuleCat K} in
-/--Let `D₁, D₂` be direct sum decomposition of `M` we say that `D₁` is a refinement
-of `D₂` if for every submodule `N` that appears in `D`, there is a subset `B` of submodules that appear
+/--Let `D₁, D₂` be direct sum decomposition of `M` we say that `D₁` is a refinement of `D₂` if for
+every submodule `N` that appears in `D`, there is a subset `B` of submodules that appear
 in `D₁` such that `∑ T ∈ B, T = N`  -/
 def IsRefinement (D₁ D₂ : DirectSumDecomposition M) : Prop :=
   ∀ ⦃N⦄, N ∈ D₂ → ∃ B : Set (PersistenceSubmodule M), B ⊆ D₁ ∧ N = sSup B
@@ -130,8 +128,8 @@ lemma RefinementMapSurj' (I : DirectSumDecomposition M) (J : DirectSumDecomposit
     exact J.not_bot_mem (h_contra ▸ N₀.prop)
   have h_gt : sSup I < N₀.val ⊔ sSup I := by
     rw [← h_aux]
-    --No clue why I couldn't use this theorem from mathlib directly and had to copy paste it here instead
-    --assuming it has to do with needing to bump
+    -- No clue why I couldn't use this theorem from mathlib directly and had to copy paste it here
+    -- instead assuming it has to do with needing to bump
     exact (right_lt_sup_of_left_ne_bot h_disj h_not_bot)
   have contra : (⊤ : PersistenceSubmodule M) < ⊤ := by
     rw [I.sSup_eq_top, J.sSup_eq_top] at *
@@ -139,14 +137,15 @@ lemma RefinementMapSurj' (I : DirectSumDecomposition M) (J : DirectSumDecomposit
   exact (lt_self_iff_false (⊤ : PersistenceSubmodule M)).mp contra
 
 
-/--Suppose that `I, J` are direct sum decompositions of `M`, `N` is a submodule appearing in `J` and `A, B` are submodules appearing in `I` such that `N ≤ A, B`. Then `A = B`.-/
+/--Suppose that `I, J` are direct sum decompositions of `M`, `N` is a submodule appearing in `J` and
+`A, B` are submodules appearing in `I` such that `N ≤ A, B`. Then `A = B`.-/
 lemma UniqueGE (I : DirectSumDecomposition M) (J : DirectSumDecomposition M)
   (N : J) (A : I) (B : I) : N.val ≤ A ∧ N.val ≤ B → A = B := by
   by_contra h'
   push_neg at h'
   rcases h' with ⟨h_le, h_neq⟩
   have h_neq' : A.val ≠ B.val := by
-    simp[h_neq]
+    simp [h_neq]
   have h_disj : Disjoint A.val B.val := by
     let s : Set (PersistenceSubmodule M) := {A.val, B.val}
     have h_sub : s ≤ I.carrier := by
@@ -165,7 +164,9 @@ lemma UniqueGE (I : DirectSumDecomposition M) (J : DirectSumDecomposition M)
   simp at h_eq_bot
   exact (J.not_bot_mem' (h_eq_bot ▸ N.prop))
 
-/--Let `I, J` be direct sum decompositions of `M` with `J` a refinement of `I`. Then `RefinementMap` is the function that sends a submodule `N` appearing in `J` to the unique submodule in `I` that contains `N` -/
+/--Let `I, J` be direct sum decompositions of `M` with `J` a refinement of `I`. Then `RefinementMap`
+is the function that sends a submodule `N` appearing in `J` to the unique submodule in `I` that
+contains `N`. -/
 noncomputable def RefinementMap (I : DirectSumDecomposition M) (J : DirectSumDecomposition M)
   (h : IsRefinement J I) : J → I :=
   if h' : I = J then by
@@ -180,8 +181,7 @@ noncomputable def RefinementMap (I : DirectSumDecomposition M) (J : DirectSumDec
 @[simp]
 lemma RefinementMapId (I : DirectSumDecomposition M) (h : IsRefinement I I) (N : I) :
   (RefinementMap I I h) N = N := by
-  simp[RefinementMap]
-
+  simp [RefinementMap]
 
 /--`RefinmentMap N` sends `N` to something it is included in.-/
 lemma RefinementMapLE (I : DirectSumDecomposition M) (J : DirectSumDecomposition M)
@@ -192,39 +192,36 @@ lemma RefinementMapLE (I : DirectSumDecomposition M) (J : DirectSumDecomposition
     simp [RefinementMapId]
   else by
     intro N
-    simp[RefinementMap, h']
+    simp [RefinementMap, h']
     exact Exists.choose_spec (RefinementMapSurj' I J h N)
 
-/--Two modules that both decompose the same element are sent to the same submodule by the `RefinementMap`-/
+/--Two modules that both decompose the same element are sent to the same submodule by the
+`RefinementMap`-/
 lemma RefinementMapSameImage (I : DirectSumDecomposition M) (J : DirectSumDecomposition M)
-  (h : IsRefinement J I)
-  : ∀ (N₁ N₂ : J), N₂.val ≤ (RefinementMap I J h N₁) → (RefinementMap I J h N₂) = (RefinementMap I J h N₁) := by
-  intro N₁ N₂ h_le₁
+    (h : IsRefinement J I) (N₁ N₂ : J) (h_le₁ : N₂.val ≤ RefinementMap I J h N₁) :
+    RefinementMap I J h N₂ = RefinementMap I J h N₁ := by
   have h_le₂ : N₂.val ≤ (RefinementMap I J h N₂) := RefinementMapLE I J h N₂
   exact (UniqueGE I J N₂ (RefinementMap I J h N₁) (RefinementMap I J h N₂) (⟨h_le₁, h_le₂⟩)).symm
 
-
 /--If `N ≤ A` for some `A : I`, then `RefinementMap N = A`.-/
-lemma SendsToUniqueGE (I : DirectSumDecomposition M) (J : DirectSumDecomposition M) (h : IsRefinement J I)
-  (N : J) (A : I) : N.val ≤ A → (RefinementMap I J h N) = A := by
+lemma SendsToUniqueGE (I : DirectSumDecomposition M) (J : DirectSumDecomposition M)
+    (h : IsRefinement J I) (N : J) (A : I) : N.val ≤ A → (RefinementMap I J h N) = A := by
   intro h_le
   let B : I := (RefinementMap I J h N)
   rw [UniqueGE I J N A B (⟨h_le, RefinementMapLE I J h N⟩)]
 
-
 @[simp]
-lemma RefinmentMapFunctorial (I : DirectSumDecomposition M) (J : DirectSumDecomposition M) (K : DirectSumDecomposition M)
-  (hij : IsRefinement J I) (hjk : IsRefinement K J) (hik : IsRefinement K I)
-  : ∀ N : K, (RefinementMap I K hik N) = RefinementMap I J hij (RefinementMap J K hjk N) := by
-  intro N
+lemma RefinmentMapFunctorial (I : DirectSumDecomposition M) (J : DirectSumDecomposition M)
+    (K : DirectSumDecomposition M) (hij : IsRefinement J I) (hjk : IsRefinement K J)
+    (hik : IsRefinement K I) (N : K) :
+    RefinementMap I K hik N = RefinementMap I J hij (RefinementMap J K hjk N) := by
   have h_le : N.val ≤ RefinementMap I J hij (RefinementMap J K hjk N) := by
     apply le_trans (RefinementMapLE J K hjk N)
     exact (RefinementMapLE I J hij _)
   exact SendsToUniqueGE I K hik N (RefinementMap I J hij (RefinementMap J K hjk N)) h_le
 
-
-
-/--The refinement relation defines a preorder on direct sum decompositions of `M` via `D₁ ≤ D₂` if and only if `D₁` is a refinement of `D₂` i.e. this relation is reflexive and transitive. -/
+/--The refinement relation defines a preorder on direct sum decompositions of `M` via `D₁ ≤ D₂` if
+and only if `D₁` is a refinement of `D₂` i.e. this relation is reflexive and transitive. -/
 instance : Preorder (DirectSumDecomposition M) where
   le D₁ D₂ := IsRefinement D₁ D₂
   --D₁ ≤ D₂ iff D₁ refines D₂.
@@ -310,8 +307,8 @@ instance DirectSumDecompLE : PartialOrder (DirectSumDecomposition M) where
 section Indecomposable
 variable {D : DirectSumDecomposition M}
 
-/--If `D` is a direct sum decomposition of `M` and for each `N` appearing in `S` we are given a direct
-sum decomposition of `N`, we can construct a refinement of `D`.-/
+/--If `D` is a direct sum decomposition of `M` and for each `N` appearing in `S` we are given a
+direct sum decomposition of `N`, we can construct a refinement of `D`.-/
 def refinement (B : ∀ N ∈ D, Set (PersistenceSubmodule M))
     (hB : ∀ N hN, N = sSup (B N hN)) (hB' : ∀ N hN, sSupIndep (B N hN))
     (hB'' : ∀ N hN, ⊥ ∉ B N hN) : DirectSumDecomposition M where
@@ -361,5 +358,4 @@ lemma Indecomposable_of_mem_Min_Direct_sum_decomposition
   sorry
 
 end Indecomposable
-
 end DirectSumDecomposition

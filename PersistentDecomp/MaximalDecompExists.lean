@@ -2,19 +2,21 @@ import Mathlib.CategoryTheory.Limits.Types
 import PersistentDecomp.DirectSumDecompositionDual
 import PersistentDecomp.Mathlib.Algebra.DirectSum.Basic
 import Mathlib.CategoryTheory.Limits.Types
---import Mathlib
---import Mathlib.Order.Partition.Finpartition
+import Mathlib
+import Mathlib.Order.Partition.Finpartition
+
+/-!
+In this file we sketch what we'll need to prove to
+get Step 2 done. Most of the work is setting the stage so
+we can apply Zorn's lemma.
+
+For now we work with types in the 1-th universe. To make the code universe polymorphic we'll need
+to make a few edits below
+-/
 
 open CategoryTheory Classical CategoryTheory.Limits DirectSum DirectSumDecomposition
 
 variable {C : Type} [Category.{0, 0} C] {K : Type} [DivisionRing K] {M : C ⥤ ModuleCat K}
-
-/- In this file we sketch what we'll need to prove to
-get Step 2 done. Most of the work is setting the stage so
-we can apply Zorn's lemma.-/
-
-/- For now we work with types in the 1-th universe. To make the code universe polymorphic we'll need to
-make a few edits below-/
 
 section Chains
 
@@ -22,7 +24,8 @@ section Chains
 decompositions. Since these are defined in terms of sets, we could construct the
 inverse limit explicitly but I think this would be really painful and messy...-/
 
-/-- Here we write some code to go from chains in directSumDecompositions to diagrams in the category of types-/
+/-- Here we write some code to go from chains in directSumDecompositions to diagrams in the category
+of types-/
 noncomputable def ToTypeCat : DirectSumDecomposition M ⥤ Type where
   obj D := D
   -- Define the maps f_{IJ} induced by "J refines I"
@@ -127,8 +130,6 @@ lemma zorny_lemma (N : PersistenceSubmodule M) : ∃ (D : DirectSumDecomposition
 
 end Chains
 
-section
-
 section Indecomposable
 
 /--This is the definition of indecomposability we should be using since it's more general
@@ -136,8 +137,6 @@ section Indecomposable
 -- TODO: we don't need `a ≤ N` and `b ≤ N` in the implications
 def Indecomposable' (N : PersistenceSubmodule M) : Prop :=
   ∀ a b : PersistenceSubmodule M, a ≤ N → b ≤ N → a ⊓ b = ⊥ → a ⊔ b = N → a = ⊥ ∨ b = ⊥
-
-section
 
 section LatticeRefinements
 
@@ -175,3 +174,4 @@ lemma bot_not_mem {S : Set α} (R : refinement S) :
 and show that submodules that are atoms yield indecomposable persistence modules-/
 
 end LatticeRefinements
+end Indecomposable

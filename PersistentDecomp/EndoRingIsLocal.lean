@@ -307,7 +307,8 @@ open LinearMap
 theorem ExistsFittingn (R : Type) [DivisionRing R] (M : ModuleCat R)
   [Module.Finite R M] (f : M →ₗ[R] M)
   : ∃ n, (IsCompl (LinearMap.ker (f ^ n)) (range (f ^ n))) := by
-  have h : ∀ᶠ n in atTop, IsCompl (LinearMap.ker (f ^ n)) (LinearMap.range (f ^ n)) := LinearMap.eventually_isCompl_ker_pow_range_pow f
+  have h : ∀ᶠ n in atTop, IsCompl (LinearMap.ker (f ^ n)) (LinearMap.range (f ^ n)) :=
+    LinearMap.eventually_isCompl_ker_pow_range_pow f
   have hh : ∃ v ∈ atTop, ∀ y ∈ v, IsCompl (LinearMap.ker (f ^ y)) (range (f ^ y)) := by
     apply Eventually.exists_mem h
   rcases hh with ⟨N, h_N, hhh⟩
@@ -329,11 +330,12 @@ theorem Step2 (α : X ⟶ Y) (M : PtwiseFinitePersMod C R) (η : EndRing C R M.t
 theorem Step2_2 (α : X ⟶ Y) (M : PtwiseFinitePersMod C R) (η : EndRing C R M.to_functor)
   : M.to_functor.map α ≫ ((η^n).app Y) = ((η^n).app X) ≫ M.to_functor.map α := by
   induction' n with n hn
-  have hnat : (M.to_functor.map α) ≫ (η.app Y) = (η.app X) ≫ (M.to_functor.map α) := Step2 C R X Y α M η
-  have hpow : M.to_functor.map α ≫ (η ^ (n + 1)).app Y = M.to_functor.map α ≫ (((η ^ n) ≫ η).app Y) := by
-    simp [-PowEqCompLeft]
-  sorry
-  sorry
+  · have hnat : M.to_functor.map α ≫ η.app Y = η.app X ≫ M.to_functor.map α := Step2 C R X Y α M η
+    have hpow :
+        M.to_functor.map α ≫ (η ^ (n + 1)).app Y = M.to_functor.map α ≫ ((η ^ n) ≫ η).app Y := by
+      simp [-PowEqCompLeft]
+    sorry
+  · sorry
 
 --I would really prefer for ηx and ηy to be unified under a single (η : EndRing C R M.to_functor)
 --argument here. The issue this creates is that then η.app X and η.app Y are intepreted as
@@ -343,25 +345,25 @@ theorem Step2_2 (α : X ⟶ Y) (M : PtwiseFinitePersMod C R) (η : EndRing C R M
 --Only a single parameter n is taken for both decompositions. In practice there would be
 --2, one at X and one at Y, but we can just pick the maximum.
 theorem Step3_1 (M : PtwiseFinitePersMod C R) (α : X ⟶ Y) (n : ℕ)
-  (ηx : M.to_functor.obj X →ₗ[R] M.to_functor.obj X) (ηy : M.to_functor.obj Y →ₗ[R] M.to_functor.obj Y)
-  (hnat : M.to_functor.map α ≫ (ηy^n) = (ηx^n) ≫ M.to_functor.map α)
-  : ∀ (x : (LinearMap.ker (ηx ^ n))), (M.to_functor.map (α) ≫ (ηy ^ n)) x = 0 := by
-  intro x
+    (ηx : M.to_functor.obj X →ₗ[R] M.to_functor.obj X)
+    (ηy : M.to_functor.obj Y →ₗ[R] M.to_functor.obj Y)
+    (hnat : M.to_functor.map α ≫ (ηy^n) = (ηx^n) ≫ M.to_functor.map α)
+    (x : (LinearMap.ker (ηx ^ n))) :
+    (M.to_functor.map (α) ≫ (ηy ^ n)) x = 0 := by
   rw [hnat]
   dsimp
   rw [LinearMap.map_coe_ker]
   simp
 
-
 theorem Step3_2 (M : PtwiseFinitePersMod C R) (α : X ⟶ Y) (n : ℕ)
-  (ηx : M.to_functor.obj X →ₗ[R] M.to_functor.obj X) (ηy : M.to_functor.obj Y →ₗ[R] M.to_functor.obj Y)
-  (hnat : M.to_functor.map α ≫ (ηy^n) = (ηx^n) ≫ M.to_functor.map α)
-  : ∀ (x : M.to_functor.obj X), x ∈ (LinearMap.range (ηx ^ n)) → ∃ y : (M.to_functor.obj Y),
-  (M.to_functor.map α x = y) ∧ (y ∈ (LinearMap.range (ηy ^ n))) := by
-  intro x hrange
-  have hmem : (∃ z, (ηx^n) z = x):= by
-    apply LinearMap.mem_range.mp at hrange
-    exact hrange
+    (ηx : M.to_functor.obj X →ₗ[R] M.to_functor.obj X)
+    (ηy : M.to_functor.obj Y →ₗ[R] M.to_functor.obj Y)
+    (hnat : M.to_functor.map α ≫ ηy ^ n = (ηx ^ n) ≫ M.to_functor.map α) (x : M.to_functor.obj X)
+    (hx : x ∈ LinearMap.range (ηx ^ n)) :
+    ∃ y : M.to_functor.obj Y, M.to_functor.map α x = y ∧ y ∈ LinearMap.range (ηy ^ n) := by
+  have hmem : ∃ z, (ηx^n) z = x := by
+    apply LinearMap.mem_range.mp at hx
+    exact hx
   let z := Exists.choose hmem
   have hz : (ηx^n) z = x := by
     apply Exists.choose_spec hmem
