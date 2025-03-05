@@ -18,7 +18,7 @@ indexed by `c : C` that is compatible with the transition maps of `M`, in the se
 all morphisms `c ⟶ d` in `C`, the induced morphism `M_c ⟶ M_d` sends `N_c` into `N_d`.-/
 structure PersistenceSubmodule where
   toFun (c : C) : Submodule K (M.obj c)
-  map_le' {c d : C} (f : c ⟶ d) : (toFun c).map (M.map f) ≤ toFun d
+  map_le' {c d : C} (f : c ⟶ d) : (toFun c).map (ModuleCat.Hom.hom <| M.map f) ≤ toFun d
 
 namespace PersistenceSubmodule
 
@@ -29,7 +29,8 @@ instance : DFunLike (PersistenceSubmodule M) C fun c ↦ Submodule K (M.obj c) w
 /-- The inclusion of the submodules `N c` and `N d` is compatible with the "transition" maps of the
 functor `M`, i.e if we have `f : c ⟶ d` then the image of `N c` by `M f` lies in the submodule
 `N d`. -/
-lemma map_le (N : PersistenceSubmodule M) (f : c ⟶ d) : (N c).map (M.map f) ≤ N d := N.map_le' _
+lemma map_le (N : PersistenceSubmodule M) (f : c ⟶ d) :
+    (N c).map (ModuleCat.Hom.hom <| M.map f) ≤ N d := N.map_le' _
 
 /--We can check equality of persistence modules pointwise-/
 @[ext]

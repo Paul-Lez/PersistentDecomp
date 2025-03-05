@@ -277,24 +277,22 @@ instance DirectSumDecompLE : PartialOrder (DirectSumDecomposition M) where
         exact (RefinementMapSurj' I J h_I_le_J) N'
       rcases h_A with ⟨A, h_N_le_A⟩
       choose f hf hf' using h_J_le_I
-      let B := f N'.prop
       let h_B₁ := hf' N'.prop
       let h_B₂ := hf N'.prop
       simp only at h_B₁
-      have h_mem : A.val ∈ B := by
+      have h_mem : A.val ∈ f N'.prop := by
         by_contra h_A_not_mem
-        have h_aux : Disjoint A.val (sSup B) := by
+        have h_aux : Disjoint A.val (sSup (f N'.prop)) := by
           exact (I.sSupIndep.disjoint_sSup A.prop h_B₂ h_A_not_mem)
-        have h_aux' : sSup B ≤ A.val := h_B₁ ▸ h_N_le_A
-        have h_last : sSup B = (⊥ : PersistenceSubmodule M) := by
+        have h_aux' : sSup (f N'.prop) ≤ A.val := h_B₁ ▸ h_N_le_A
+        have h_last : sSup (f N'.prop) = (⊥ : PersistenceSubmodule M) := by
           rw [disjoint_comm] at h_aux
           exact (Disjoint.eq_bot_of_le h_aux h_aux')
         rw [← h_B₁] at h_last
         subst h_last
         exact (J.not_bot_mem h_N_in_J)
       have h_A_le_N : A.val ≤ N := by
-        rw [h_B₁]
-        exact le_sSup h_mem
+        simpa [← h_B₁] using le_sSup h_mem
       have h_A_eq_N : A.val = N := by
         exact (le_antisymm h_A_le_N h_N_le_A)
       have h_contra : N ∈ I := by

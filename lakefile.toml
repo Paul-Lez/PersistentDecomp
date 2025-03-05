@@ -39,6 +39,5 @@ linter.style.setOption = true
 name = "mathlib"
 git = "https://github.com/leanprover-community/mathlib4.git"
 
-
 [[lean_lib]]
 name = "PersistentDecomp"

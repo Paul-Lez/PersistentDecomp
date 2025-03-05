@@ -1,5 +1,5 @@
 import Mathlib.Algebra.Category.ModuleCat.Abelian
-import Mathlib.RingTheory.Artinian
+import Mathlib.RingTheory.Artinian.Module
 
 /-!
 Work left to do
@@ -34,12 +34,11 @@ open CategoryTheory Filter
 
 universe u
 
-def ZeroSubmod (K : Type u) [DivisionRing K] : ModuleCat.{u} K where
-  carrier := PUnit.{u+1}
+def ZeroSubmod (K : Type u) [DivisionRing K] : ModuleCat.{u} K := .of _ PUnit.{u+1}
 
-def ZeroModule (C K : Type*) [Category C] [DivisionRing K] : (C ⥤ ModuleCat K) where
-  obj := fun _ ↦ (ZeroSubmod K)
-  map _ :=  𝟙 (ZeroSubmod K)
+def ZeroModule (C K : Type*) [Category C] [DivisionRing K] : C ⥤ ModuleCat K where
+  obj _ := ZeroSubmod K
+  map _ := 𝟙 (ZeroSubmod K)
 
 --Pointwise finite persistence modules over some small category C.
 structure PtwiseFinitePersMod (C : Type*) [Category C] (K : Type*)
@@ -69,17 +68,17 @@ def ProductMapFunc (R : Type) [DivisionRing R] (C : Type) [Category C]
     exact ⟨F.map f x₁, G.map f x₂⟩
   map_add' x y := by
     dsimp
-    rw [LinearMap.map_add (F.map f) _ _, LinearMap.map_add (G.map f) _ _]
+    rw [LinearMap.map_add, LinearMap.map_add]
   map_smul' c x := by
     dsimp
-    rw [LinearMap.map_smul (F.map f) _ _, LinearMap.map_smul (G.map f) _ _]
+    rw [LinearMap.map_smul, LinearMap.map_smul]
 
 --Same as above, but written with the ProductModule objects for simplicity
 @[simp]
 def ProductModuleMap (R : Type) [DivisionRing R] (C : Type) [Category C]
   {X Y : C} (f : (X ⟶ Y)) (F : C ⥤ ModuleCat R) (G : C ⥤ ModuleCat R) :
   ((ProductModule R C F G X) ⟶ (ProductModule R C F G Y)) :=
-  ProductMapFunc R C f F G
+  ModuleCat.ofHom <| ProductMapFunc R C f F G
 
 --The direct sum of the functors F and G.
 @[simp]
@@ -136,7 +135,8 @@ structure Subfunctor (R : Type) [DivisionRing R] (C : Type) [Category C]
   injection (X : C) : (baseFunctor.obj X →ₗ[R] F.obj X)
   inj_cond (X : C) : Function.Injective (injection X)
   restriction {X Y : C} (f : X ⟶ Y) : ∀ (x : baseFunctor.obj X),
-    (baseFunctor.map f ≫ injection Y) x = (asHom (injection X) ≫ F.map f) x
+    ModuleCat.Hom.hom (baseFunctor.map f ≫ ModuleCat.ofHom (injection Y)) x =
+      ModuleCat.Hom.hom (ModuleCat.ofHom (injection X) ≫ F.map f) x
     --careful with asHom! This breaks if you use asHom injection Y instead.
 --I've also been told there are alternatives way to do this definition on Zulip,
 --to look into.
@@ -145,8 +145,8 @@ structure Subfunctor (R : Type) [DivisionRing R] (C : Type) [Category C]
 
 --Should this be a def?
 def SubmodDecomp (R : Type) [DivisionRing R] (C : Type) [Category C]
-  (M : C ⥤ ModuleCat R) (N₁ : Subfunctor R C M) (N₂ : Subfunctor R C M)
-  := (M = (FunctorDirSum R C N₁.baseFunctor N₂.baseFunctor))
+  (M : C ⥤ ModuleCat R) (N₁ : Subfunctor R C M) (N₂ : Subfunctor R C M) :=
+  M = (FunctorDirSum R C N₁.baseFunctor N₂.baseFunctor)
 
 
 def IsIndecomposable (R : Type) [DivisionRing R] (C : Type) [Category C]
@@ -347,9 +347,10 @@ theorem Step2_2 (α : X ⟶ Y) (M : PtwiseFinitePersMod C R) (η : EndRing C R M
 theorem Step3_1 (M : PtwiseFinitePersMod C R) (α : X ⟶ Y) (n : ℕ)
     (ηx : M.to_functor.obj X →ₗ[R] M.to_functor.obj X)
     (ηy : M.to_functor.obj Y →ₗ[R] M.to_functor.obj Y)
-    (hnat : M.to_functor.map α ≫ (ηy^n) = (ηx^n) ≫ M.to_functor.map α)
+    (hnat : M.to_functor.map α ≫ ModuleCat.ofHom (ηy^n) =
+      ModuleCat.ofHom (ηx^n) ≫ M.to_functor.map α)
     (x : (LinearMap.ker (ηx ^ n))) :
-    (M.to_functor.map (α) ≫ (ηy ^ n)) x = 0 := by
+    (M.to_functor.map α ≫ ModuleCat.ofHom (ηy ^ n)) x = 0 := by
   rw [hnat]
   dsimp
   rw [LinearMap.map_coe_ker]
@@ -358,7 +359,9 @@ theorem Step3_1 (M : PtwiseFinitePersMod C R) (α : X ⟶ Y) (n : ℕ)
 theorem Step3_2 (M : PtwiseFinitePersMod C R) (α : X ⟶ Y) (n : ℕ)
     (ηx : M.to_functor.obj X →ₗ[R] M.to_functor.obj X)
     (ηy : M.to_functor.obj Y →ₗ[R] M.to_functor.obj Y)
-    (hnat : M.to_functor.map α ≫ ηy ^ n = (ηx ^ n) ≫ M.to_functor.map α) (x : M.to_functor.obj X)
+    (hnat : M.to_functor.map α ≫ ModuleCat.ofHom (ηy ^ n) =
+      ModuleCat.ofHom (ηx ^ n) ≫ M.to_functor.map α)
+    (x : M.to_functor.obj X)
     (hx : x ∈ LinearMap.range (ηx ^ n)) :
     ∃ y : M.to_functor.obj Y, M.to_functor.map α x = y ∧ y ∈ LinearMap.range (ηy ^ n) := by
   have hmem : ∃ z, (ηx^n) z = x := by
@@ -367,7 +370,7 @@ theorem Step3_2 (M : PtwiseFinitePersMod C R) (α : X ⟶ Y) (n : ℕ)
   let z := Exists.choose hmem
   have hz : (ηx^n) z = x := by
     apply Exists.choose_spec hmem
-  use (M.to_functor.map α ≫ (ηy^n)) z
+  use (M.to_functor.map α ≫ ModuleCat.ofHom (ηy ^ n)) z
   constructor
   · rw [hnat]
     dsimp
