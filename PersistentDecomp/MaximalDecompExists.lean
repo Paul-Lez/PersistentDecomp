@@ -1,9 +1,6 @@
-import Mathlib.CategoryTheory.Limits.Types
+import Mathlib.CategoryTheory.Limits.Types.Limits
 import PersistentDecomp.DirectSumDecompositionDual
 import PersistentDecomp.Mathlib.Algebra.DirectSum.Basic
-import Mathlib.CategoryTheory.Limits.Types
-import Mathlib
-import Mathlib.Order.Partition.Finpartition
 
 /-!
 In this file we sketch what we'll need to prove to
@@ -29,11 +26,7 @@ of types-/
 noncomputable def ToTypeCat : DirectSumDecomposition M ⥤ Type where
   obj D := D
   -- Define the maps f_{IJ} induced by "J refines I"
-  map {J I} f := by
-    simp
-    exact (RefinementMap I J (leOfHom f))
-  map_id {I} := by
-    aesop
+  map {J I} f := RefinementMap I J (leOfHom f)
   map_comp {I J L} f g := by
     have h₁ := leOfHom f
     have h₂ := leOfHom g

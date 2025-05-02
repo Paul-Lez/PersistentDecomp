@@ -13,7 +13,7 @@ lemma isInternal_iff [DecidableEq M] :
   rw [Function.Bijective, Function.Surjective]
   rw [← AddMonoidHom.ker_eq_bot_iff]
   rw [AddSubgroup.eq_bot_iff_forall]
-  simp [AddMonoidHom.mem_ker, DirectSum.coeAddMonoidHom_eq_dfinsupp_sum]
+  simp [AddMonoidHom.mem_ker, DirectSum.coeAddMonoidHom_eq_dfinsuppSum]
 
 lemma IsInternal.eq_zero_of_subsingleton_preimage (hA : IsInternal A) {κ : Type*} (g : κ → ι)
     (f : κ → M) (s : Finset κ) (hg : (s : Set κ).InjOn g) (hfg : ∀ k, f k ∈ A (g k))
