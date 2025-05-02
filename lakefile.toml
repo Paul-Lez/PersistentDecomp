@@ -1,4 +1,5 @@
 name = "PersistentDecomp"
+keyword = ["math", "topological-data-analysis", "category-theory", "persistent-homology"]
 defaultTargets = ["PersistentDecomp"]
 
 [leanOptions]
