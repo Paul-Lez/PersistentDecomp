@@ -11,7 +11,7 @@ For now we work with types in the 1-th universe. To make the code universe polym
 to make a few edits below
 -/
 
-open CategoryTheory Classical CategoryTheory.Limits DirectSum DirectSumDecomposition
+open CategoryTheory Classical CategoryTheory.Limits DirectSum Dual DirectSumDecomposition
 
 variable {C : Type} [Category.{0, 0} C] {K : Type} [DivisionRing K] {M : C ⥤ ModuleCat K}
 

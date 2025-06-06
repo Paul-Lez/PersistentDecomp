@@ -17,8 +17,6 @@ open CompleteLattice hiding sSup_le -- TODO: Fix in mathlib
 
 variable {C : Type} [Category.{0, 0} C] {K : Type} [DivisionRing K] {M : C ⥤ ModuleCat K}
 
-section DirectSumDecomposition
-
 variable (M) in
 /--A direct sum decompositon of `M ` is a set of non-zero submodules
 that are linearly independent and whose supremum is the whole of `M `-/
@@ -50,15 +48,13 @@ lemma pointwise_sSup_eq_top (D : DirectSumDecomposition M) (x : C) : ⨆ p ∈ D
 lemma isInternal (I : DirectSumDecomposition M) (c : C) :
     IsInternal (M := M.obj c) (S := Submodule K (M.obj c)) fun p : I ↦ p.val c := by
   rw [DirectSum.isInternal_submodule_iff_iSupIndep_and_iSup_eq_top]
-  constructor
-  sorry
-  sorry
+  constructor <;> sorry
   --rw [← iSup_apply, ← sSup_eq_iSup', I.sSup_eq_top]
   --rfl
 
 variable {M : C ⥤ ModuleCat K} in
-/--Let `D₁, D₂` be direct sum decomposition of `M` we say that `D₁` is a refinement
-of `D₂` if for every submodule `N` that appears in `D`, there is a subset `B` of submodules that appear
+/-- Let `D₁, D₂` be direct sum decomposition of `M` we say that `D₁` is a refinement of `D₂` if for
+every submodule `N` that appears in `D`, there is a subset `B` of submodules that appear
 in `D₁` such that `∑ T ∈ B, T = N`  -/
 def IsRefinement (D₁ D₂ : DirectSumDecomposition M) : Prop :=
   ∀ ⦃N⦄, N ∈ D₂ → ∃ B : Set (PersistenceSubmodule M), B ⊆ D₁ ∧ N = sSup B
@@ -128,15 +124,16 @@ lemma RefinementMapSurj' (I : DirectSumDecomposition M) (J : DirectSumDecomposit
     exact J.not_bot_mem (h_contra ▸ N₀.prop)
   have h_gt : sSup I < N₀.val ⊔ sSup I := by
     rw [← h_aux]
-    --No clue why I couldn't use this theorem from mathlib directly and had to copy paste it here instead
-    --assuming it has to do with needing to bump
+    -- No clue why I couldn't use this theorem from mathlib directly and had to copy paste it here
+    -- instead assuming it has to do with needing to bump
     exact (right_lt_sup_of_left_ne_bot h_disj h_not_bot)
   have contra : (⊤ : PersistenceSubmodule M) < ⊤ := by
     rw [I.sSup_eq_top, J.sSup_eq_top] at *
     apply lt_of_lt_of_le h_gt h_ge
   exact (lt_self_iff_false (⊤ : PersistenceSubmodule M)).mp contra
 
-/--The refinement relation defines a preorder on direct sum decompositions of `M` via `D₁ ≤ D₂` if and only if `D₂` is a refinement of `D₁` i.e. this relation is reflexive and transitive. -/
+/-- The refinement relation defines a preorder on direct sum decompositions of `M` via `D₁ ≤ D₂` if
+and only if `D₂` is a refinement of `D₁` i.e. this relation is reflexive and transitive. -/
 instance : Preorder (DirectSumDecomposition M) where
   le D₁ D₂ := IsRefinement D₂ D₁
   --D₁ ≤ D₂ iff D₂ refines D₁.
@@ -193,8 +190,8 @@ instance DirectSumDecompLE : PartialOrder (DirectSumDecomposition M) where
       rcases h_A with ⟨A, h_N_le_A⟩
       choose f hf hf' using h_J_le_I
       let B := f N'.prop
-      let h_B₁ := hf' N'.prop
-      let h_B₂ := hf N'.prop
+      have h_B₁ : N = _ := hf' N'.prop
+      have h_B₂ := hf N'.prop
       simp only at h_B₁
       have h_mem : A.val ∈ B := by
         by_contra h_A_not_mem
@@ -222,9 +219,9 @@ instance DirectSumDecompLE : PartialOrder (DirectSumDecomposition M) where
 section Indecomposable
 variable {D : DirectSumDecomposition M}
 
-/--If `D` is a direct sum decomposition of `M` and for each `N` appearing in `D` we are given a direct
-sum decomposition of `N`, we can construct a refinement of `D` whose underlying set is the union of all
-decompositions of the `N`'s appearing in `D`-/
+/-- If `D` is a direct sum decomposition of `M` and for each `N` appearing in `D` we are given a
+direct sum decomposition of `N`, we can construct a refinement of `D` whose underlying set is the
+union of all decompositions of the `N`'s appearing in `D`. -/
 def refinement (B : ∀ N ∈ D, Set (PersistenceSubmodule M))
     (hB : ∀ N hN, N = sSup (B N hN)) (hB' : ∀ N hN, sSupIndep (B N hN))
     (hB'' : ∀ N hN, ⊥ ∉ B N hN) : DirectSumDecomposition M where

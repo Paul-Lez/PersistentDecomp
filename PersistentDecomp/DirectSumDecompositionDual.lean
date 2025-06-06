@@ -18,6 +18,8 @@ here, we are considering the *dual order* of the one constructed in the other fi
 open CategoryTheory Classical CategoryTheory.Limits DirectSum
 open CompleteLattice hiding sSup_le -- TODO: Fix in mathlib
 
+namespace Dual
+
 variable {C : Type} [Category.{0, 0} C] {K : Type} [DivisionRing K] {M : C ⥤ ModuleCat K}
 
 variable (M) in
@@ -357,3 +359,4 @@ lemma Indecomposable_of_mem_Min_Direct_sum_decomposition
 
 end Indecomposable
 end DirectSumDecomposition
+end Dual

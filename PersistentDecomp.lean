@@ -1,12 +1,13 @@
 import PersistentDecomp.BumpFunctor
+import PersistentDecomp.DirectSumDecomposition
 import PersistentDecomp.DirectSumDecompositionDual
+import PersistentDecomp.EndoRingIsLocal
 import PersistentDecomp.Mathlib.Algebra.DirectSum.Basic
 import PersistentDecomp.Mathlib.Algebra.Module.Submodule.Map
 import PersistentDecomp.Mathlib.Data.DFinsupp.BigOperators
 import PersistentDecomp.Mathlib.Order.Disjoint
 import PersistentDecomp.Mathlib.Order.Interval.Basic
 import PersistentDecomp.Mathlib.Order.SupIndep
+import PersistentDecomp.MaximalDecompExists
 import PersistentDecomp.Prereqs.Indecomposable
 import PersistentDecomp.Prereqs.PersistenceSubmodule
-import PersistentDecomp.EndoRingIsLocal
-import PersistentDecomp.MaximalDecompExists
