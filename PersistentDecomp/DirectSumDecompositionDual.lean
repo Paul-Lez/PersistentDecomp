@@ -341,7 +341,7 @@ lemma Indecomposable_of_mem_Min_Direct_sum_decomposition
     (D : DirectSumDecomposition M) (N : PersistenceSubmodule M) (hN : N ∈ D) (hmax : IsMin D) :
     Indecomposable N := by
   by_contra hNotMax
-  simp only [_root_.Indecomposable, not_forall, Classical.not_imp, not_or] at hNotMax
+  simp only [_root_.Indecomposable, not_forall, not_or] at hNotMax
   obtain ⟨x, y, hxy, rfl, hx, hy⟩ := hNotMax
   let B (N) (hN : N ∈ D) : Set (PersistenceSubmodule M) := if N = x ⊔ y then {x, y} else {N}
   set newD : DirectSumDecomposition M := refinement

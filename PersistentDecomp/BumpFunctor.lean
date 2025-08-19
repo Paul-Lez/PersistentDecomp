@@ -42,7 +42,7 @@ noncomputable def Bump : C ⥤ A where
       -- from `Bump x` to `z` so we need to compose with the "identity map" `z ⟶ Bump y`, i.e. we
       -- need to use `eqToHom`, which converts equalities of objects to morphisms
       if hy : y ∈ S then eqToHom (by simp only [hx, ↓reduceIte, hy]) else
-        hz.from_ _ ≫ eqToHom (by simp only [hx, ↓reduceIte, hy])
+        hz.from_ _ ≫ eqToHom (by simp only [↓reduceIte, hy])
       else eqToHom (by simp only [hx, ↓reduceIte]) ≫ hz.to_ _
   map_comp {u v w} f g := by
     --The proof is a case bash. We start with the case that u lies in S
@@ -76,7 +76,7 @@ noncomputable def Bump : C ⥤ A where
     --Again we can argue by cases, but here things are less tedious
     by_cases hx : x ∈ S
     · simp only [hx, ↓reduceDIte, eqToHom_refl]
-    · simp only [eqToHom_refl, hx, ↓reduceDIte]
+    · simp only [hx, ↓reduceDIte]
       rw [eqToHom_comp_iff]
       apply hz.to_eq
 
