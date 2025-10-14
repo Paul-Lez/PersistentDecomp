@@ -245,7 +245,7 @@ instance : Preorder (DirectSumDecomposition M) where
         have h_aux'' : ∃ (c : C), a ∈ (f (h_sub c.prop)) := by aesop
         rcases h_aux'' with ⟨c_a, h_ca⟩
         have h_le : a ≤ c_a := by
-          rw [hf' (N := c_a)]
+          rw [hf' (N := c_a) (h_sub c_a.2)]
           apply le_sSup h_ca
         apply le_sSup_of_le c_a.prop h_le
         apply sSup_le
