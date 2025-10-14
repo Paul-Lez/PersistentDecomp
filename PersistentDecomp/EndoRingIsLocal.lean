@@ -327,15 +327,17 @@ theorem Step2 (α : X ⟶ Y) (M : PtwiseFinitePersMod C R) (η : EndRing C R M.t
 
 
 --Can't make heads or tails of this one yet.
-theorem Step2_2 (α : X ⟶ Y) (M : PtwiseFinitePersMod C R) (η : EndRing C R M.to_functor)
-  : M.to_functor.map α ≫ ((η^n).app Y) = ((η^n).app X) ≫ M.to_functor.map α := by
-  induction' n with n hn
-  · have hnat : M.to_functor.map α ≫ η.app Y = η.app X ≫ M.to_functor.map α := Step2 C R X Y α M η
+theorem Step2_2 (α : X ⟶ Y) (M : PtwiseFinitePersMod C R) (η : EndRing C R M.to_functor) :
+    M.to_functor.map α ≫ (η^n).app Y = (η^n).app X ≫ M.to_functor.map α := by
+  induction n with
+  |  zero =>
+    sorry
+  | succ n hn =>
+    have hnat : M.to_functor.map α ≫ η.app Y = η.app X ≫ M.to_functor.map α := Step2 C R X Y α M η
     have hpow :
         M.to_functor.map α ≫ (η ^ (n + 1)).app Y = M.to_functor.map α ≫ ((η ^ n) ≫ η).app Y := by
       simp [-PowEqCompLeft]
     sorry
-  · sorry
 
 --I would really prefer for ηx and ηy to be unified under a single (η : EndRing C R M.to_functor)
 --argument here. The issue this creates is that then η.app X and η.app Y are intepreted as
