@@ -90,30 +90,22 @@ lemma RefinementMapSurj' (I : DirectSumDecomposition M) (J : DirectSumDecomposit
     simp [B] at h_C_mem
     exact h_C_mem.right
   have h_aux : sSup B = sSup I := by
-    apply le_antisymm
-    apply sSup_le
-    intro b h_mem
-    simp [B] at h_mem
-    rcases h_mem with ⟨h₁, _⟩
-    rcases h₁ with ⟨a, h_a, h_le⟩
-    exact (le_sSup_of_le h_a h_le)
+    simp_rw [le_antisymm_iff, sSup_le_iff]
+    constructor
+    · intro b h_mem
+      simp [B] at h_mem
+      rcases h_mem with ⟨h₁, _⟩
+      rcases h₁ with ⟨a, h_a, h_le⟩
+      exact le_sSup_of_le h_a h_le
     have h_le_subset : ∀ A : I, ∃ C ⊆ B, A ≤ sSup C := by
       intro A
       choose f hf hf' using h
-      let C' := f (A.prop)
-      use C'
-      constructor
+      refine ⟨f A.prop, ?_, by rw [← hf' A.prop]⟩
       intro α h_α
       simp [B]
-      constructor
-      use A
-      constructor
-      exact A.prop
-      rw [(hf' A.prop)]
-      exact (le_sSup h_α)
-      exact ((hf A.prop) h_α)
-      rw [← (hf' A.prop)]
-    apply sSup_le
+      refine ⟨⟨A, A.prop, ?_⟩, hf A.prop h_α⟩
+      rw [hf' A.prop]
+      exact le_sSup h_α
     intro A h_A_mem
     rcases h_le_subset ⟨A, h_A_mem⟩ with ⟨C, h_C⟩
     simp only at h_C
@@ -153,16 +145,12 @@ lemma UniqueGE (I : DirectSumDecomposition M) (J : DirectSumDecomposition M)
     have h_sub : s ≤ I.carrier := by
       intro X hx
       rcases hx with ⟨h_mem⟩
-      exact (h_mem ▸ A.prop)
+      · exact (h_mem ▸ A.prop)
       subst X
       exact B.prop
     exact (sSupIndep_pair h_neq').mp (sSupIndep.mono I.sSupIndep' h_sub)
-  have h_le' : N.val ≤ A.val ⊓ B.val := by
-    apply le_inf
-    exact h_le.1
-    exact h_le.2
-  have h_eq_bot : N ≤ (⊥ : PersistenceSubmodule M) := by
-    apply le_trans (h_le') (disjoint_iff_inf_le.mp h_disj)
+  have h_le' : N.val ≤ A.val ⊓ B.val := le_inf h_le.1 h_le.2
+  have h_eq_bot : N ≤ (⊥ : PersistenceSubmodule M) := h_le'.trans <| disjoint_iff_inf_le.mp h_disj
   simp at h_eq_bot
   exact (J.not_bot_mem' (h_eq_bot ▸ N.prop))
 
@@ -239,16 +227,13 @@ instance : Preorder (DirectSumDecomposition M) where
       intro c
       exact hf (h_sub c.prop)
     · have h_aux' : sSup A = sSup C := by
-        apply le_antisymm
-        apply sSup_le_iff.mpr
-        intro a h_a
-        have h_aux'' : ∃ (c : C), a ∈ (f (h_sub c.prop)) := by aesop
-        rcases h_aux'' with ⟨c_a, h_ca⟩
-        have h_le : a ≤ c_a := by
-          rw [hf' (N := c_a) (h_sub c_a.2)]
-          apply le_sSup h_ca
-        apply le_sSup_of_le c_a.prop h_le
-        apply sSup_le
+        simp_rw [le_antisymm_iff, sSup_le_iff]
+        constructor
+        · intro a h_a
+          have h_aux'' : ∃ (c : C), a ∈ (f (h_sub c.prop)) := by aesop
+          rcases h_aux'' with ⟨c_a, h_ca⟩
+          have h_le : a ≤ c_a := by rw [hf' (N := c_a) (h_sub c_a.2)]; apply le_sSup h_ca
+          apply le_sSup_of_le c_a.prop h_le
         intro c h_mem_c
         let c' : C := ⟨c, h_mem_c⟩
         have h_le_c : c ≤ sSup (f (h_sub c'.prop)) := by

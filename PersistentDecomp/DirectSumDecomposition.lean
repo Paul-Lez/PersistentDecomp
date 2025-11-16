@@ -84,30 +84,21 @@ lemma RefinementMapSurj' (I : DirectSumDecomposition M) (J : DirectSumDecomposit
     simp [B] at h_C_mem
     exact h_C_mem.right
   have h_aux : sSup B = sSup I := by
-    apply le_antisymm
-    apply sSup_le
-    intro b h_mem
-    simp [B] at h_mem
-    rcases h_mem with ⟨h₁, _⟩
-    rcases h₁ with ⟨a, h_a, h_le⟩
-    exact (le_sSup_of_le h_a h_le)
-    have h_le_subset : ∀ A : I, ∃ C ⊆ B, A ≤ sSup C := by
-      intro A
+    simp_rw [le_antisymm_iff, sSup_le_iff]
+    constructor
+    · intro b h_mem
+      simp [B] at h_mem
+      rcases h_mem with ⟨h₁, _⟩
+      rcases h₁ with ⟨a, h_a, h_le⟩
+      exact (le_sSup_of_le h_a h_le)
+    have h_le_subset (A : I) : ∃ C ⊆ B, A ≤ sSup C := by
       choose f hf hf' using h
-      let C' := f (A.prop)
-      use C'
-      constructor
+      refine ⟨f A.prop, ?_, by rw [← (hf' A.prop)]⟩
       intro α h_α
-      simp [B]
-      constructor
-      use A
-      constructor
-      exact A.prop
-      rw [(hf' A.prop)]
-      exact (le_sSup h_α)
-      exact ((hf A.prop) h_α)
-      rw [← (hf' A.prop)]
-    apply sSup_le
+      simp only [exists_and_right, Subtype.exists, exists_prop, Set.mem_setOf_eq, B]
+      refine ⟨⟨A, A.prop, ?_⟩, hf A.prop h_α⟩
+      rw [hf' A.prop]
+      exact le_sSup h_α
     intro A h_A_mem
     rcases h_le_subset ⟨A, h_A_mem⟩ with ⟨C, h_C⟩
     simp only at h_C
@@ -149,20 +140,18 @@ instance : Preorder (DirectSumDecomposition M) where
       intro c
       exact hf (h_sub c.prop)
     · have h_aux' : sSup A = sSup C := by
-        apply le_antisymm
-        apply sSup_le_iff.mpr
-        intro a h_a
-        have h_aux'' : ∃ (c : C), a ∈ (f (h_sub c.prop)) := by aesop
-        rcases h_aux'' with ⟨c_a, h_ca⟩
-        have h_le : a ≤ c_a := by
-          rw [hf' (N := c_a) (h_sub c_a.2)]
-          apply le_sSup h_ca
-        apply le_sSup_of_le c_a.prop h_le
-        apply sSup_le
+        simp_rw [le_antisymm_iff, sSup_le_iff]
+        constructor
+        · intro a h_a
+          have h_aux'' : ∃ (c : C), a ∈ (f (h_sub c.prop)) := by aesop
+          rcases h_aux'' with ⟨c_a, h_ca⟩
+          have h_le : a ≤ c_a := by
+            rw [hf' (N := c_a) (h_sub c_a.2)]
+            apply le_sSup h_ca
+          apply le_sSup_of_le c_a.prop h_le
         intro c h_mem_c
         let c' : C := ⟨c, h_mem_c⟩
-        have h_le_c : c ≤ sSup (f (h_sub c'.prop)) := by
-          rw [← hf' (h_sub c'.prop)]
+        have h_le_c : c ≤ sSup (f (h_sub c'.prop)) := by rw [← hf' (h_sub c'.prop)]
         apply le_trans h_le_c
         apply sSup_le
         intro a h_mem_a
