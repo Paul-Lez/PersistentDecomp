@@ -59,6 +59,7 @@ notation3:max "M["l"]_[" c "]" => chainBound l c
 
 lemma chainBound_le : M[l] ≤ (Λ I l).val := iInf_le ..
 
+@[nolint unusedArguments]
 noncomputable def limit_elt_mk (hT : IsChain LE.le T) (f : T → PersistenceSubmodule M)
   (h_le : ∀ (I J : T), I ≤ J → f J ≤ f I) (h_mem : ∀ I : T, (f I) ∈ I.val) : (L T) := by
   let f' : (I : T) → (Pone T).obj I := by
