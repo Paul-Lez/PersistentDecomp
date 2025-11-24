@@ -211,6 +211,7 @@ variable {D : DirectSumDecomposition M}
 /-- If `D` is a direct sum decomposition of `M` and for each `N` appearing in `D` we are given a
 direct sum decomposition of `N`, we can construct a refinement of `D` whose underlying set is the
 union of all decompositions of the `N`'s appearing in `D`. -/
+@[nolint unusedArguments]
 def refinement (B : ∀ N ∈ D, Set (PersistenceSubmodule M))
     (hB : ∀ N hN, N = sSup (B N hN)) (hB' : ∀ N hN, sSupIndep (B N hN))
     (hB'' : ∀ N hN, ⊥ ∉ B N hN) : DirectSumDecomposition M where
