@@ -221,7 +221,7 @@ lemma OneDef : (1 : EndRing C R F) = (𝟙 F) := by
   rfl
 
 @[simp]
-lemma ZeroEndAppIsZero : (ZeroEndomorphism C R F).app = 0 := by
+lemma ZeroEndAppIsZero : (fun X => 0 : ∀ X : C, F.obj X →ₗ[R] F.obj X) = 0 := by
   rfl
 
 @[simp]
@@ -247,11 +247,12 @@ lemma NegDef (θ : EndRing C R F) : -θ = OppEndo C R F θ := by
   rfl
 
 @[simp]
-lemma NegApp (θ : EndRing C R F) (X : C) : (-θ).app X = - (θ.app X) := by
+lemma NegApp (θ : EndRing C R F) (X : C) : (OppEndo C R F θ).app X = - (θ.app X) := by
   rfl
 
 @[simp]
-lemma NegAppModule (θ : EndRing C R F) (X : C) (x : F.obj X) :((-θ).app X) x = - (θ.app X x) := by
+lemma NegAppModule (θ : EndRing C R F) (X : C) (x : F.obj X) :
+    ((OppEndo C R F θ).app X) x = - (θ.app X x) := by
   rfl
 
 @[simp]
@@ -259,7 +260,6 @@ lemma MulDef (e : EndRing C R F) (f : EndRing C R F):
   (e * f) = f ≫ e := by
   rfl
 
-@[simp]
 lemma CompIsComp (e : EndRing C R F) (f : EndRing C R F) (X : C) :
   (e * f).app X = f.app X ≫ e.app X := by
   rfl
@@ -289,8 +289,8 @@ lemma PowEqCompLeft (θ : EndRing C R F) (n : ℕ) : θ^(n+1) = θ ≫ (θ^n) :=
   rfl
 
 @[simp]
-lemma PowEqCompRight (θ : EndRing C R F) (n : ℕ) : θ^(n+1) = (θ^n) ≫ θ := by
-  rw [←MulDef]
+lemma PowEqCompRight (θ : EndRing C R F) (n : ℕ) : θ ≫ (θ^n) = (θ^n) ≫ θ := by
+  rw [←PowEqCompLeft, ←MulDef]
   have h : n = (n+1)-1 := by simp
   nth_rewrite 2 [h]
   rw [mul_pow_sub_one]
