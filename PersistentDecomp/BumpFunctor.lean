@@ -88,12 +88,10 @@ We can also show functoriality in the choice of the element `e`.-/
 
 section API
 
-@[simp]
 lemma Bump_apply_of_mem {x : C} (hx : x ∈ S) :
   (Bump e hz hS).obj x = e := by
   simp only [Bump_obj, hx, ↓reduceIte]
 
-@[simp]
 lemma Bump_apply_of_not_mem {x : C} (hx : x ∉ S) :
   (Bump e hz hS).obj x = z := by
   simp only [Bump_obj, hx, ↓reduceIte]
