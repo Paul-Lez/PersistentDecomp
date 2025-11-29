@@ -200,7 +200,6 @@ lemma SendsToUniqueGE (I : DirectSumDecomposition M) (J : DirectSumDecomposition
   let B : I := (RefinementMap I J h N)
   rw [UniqueGE I J N A B (⟨h_le, RefinementMapLE I J h N⟩)]
 
-@[simp]
 lemma RefinmentMapFunctorial (I : DirectSumDecomposition M) (J : DirectSumDecomposition M)
     (K : DirectSumDecomposition M) (hij : IsRefinement J I) (hjk : IsRefinement K J)
     (hik : IsRefinement K I) (N : K) :
