@@ -11,7 +11,7 @@ For now we work with types in the 1-th universe. To make the code universe polym
 to make a few edits below
 -/
 
-open CategoryTheory Classical CategoryTheory.Limits DirectSum Dual DirectSumDecomposition
+open CategoryTheory CategoryTheory.Limits DirectSum Dual DirectSumDecomposition
 
 variable {C : Type} [Category.{0, 0} C] {K : Type} [DivisionRing K] {M : C ⥤ ModuleCat K}
 
@@ -22,7 +22,7 @@ decompositions. Since these are defined in terms of sets, we could construct the
 inverse limit explicitly but I think this would be really painful and messy...-/
 
 /-- Here we write some code to go from chains in directSumDecompositions to diagrams in the category
-of types-/
+of types. -/
 noncomputable def ToTypeCat : DirectSumDecomposition M ⥤ Type where
   obj D := D
   -- Define the maps f_{IJ} induced by "J refines I"
@@ -73,7 +73,7 @@ noncomputable def limit_elt_mk (hT : IsChain LE.le T) (f : T → PersistenceSubm
   let l := CategoryTheory.Limits.Types.Limit.mk (Pone T) f' h_compatible
   exact l
 
-
+open scoped Classical in
 /-- `M` is the direct sum of all the `M[λ]`. -/
 lemma isInternal_chainBound (hT : IsChain LE.le T) (c : C) : IsInternal fun l : L T ↦ M[l]_[c] := by
   rw [isInternal_iff]
@@ -101,7 +101,7 @@ lemma sSup_lambdas_eq_top (hT : IsChain LE.le T) :
     sSup {M[l] | (l : L T) (_ : ¬ IsBot M[l])} = ⊤ := by
   sorry
 
-/-- Get a direct sum out of a chain (this should be the index set 𝓤 in out doc)-/
+/-- Get a direct sum out of a chain (this should be the index set 𝓤 in out doc). -/
 def DirectSumDecomposition_of_chain (hT : IsChain LE.le T) : DirectSumDecomposition M where
   carrier := {M[l] | (l : L T) (_ : ¬ IsBot M[l])}
   sSup_eq_top' := sSup_lambdas_eq_top hT
@@ -114,7 +114,7 @@ lemma every_chain_has_an_upper_bound (N : PersistenceSubmodule M) (hT : IsChain 
   intro D hD
   sorry
 
-/--Every chain has an upper bound, hence there is a maximal direct sum decomposition `D`-/
+/-- Every chain has an upper bound, hence there is a maximal direct sum decomposition `D`. -/
 lemma zorny_lemma (N : PersistenceSubmodule M) : ∃ (D : DirectSumDecomposition M), IsMax D := by
   apply zorn_le
   rintro T hT
@@ -126,8 +126,8 @@ end Chains
 
 section Indecomposable
 
-/--This is the definition of indecomposability we should be using since it's more general
-(works at a lattice theoretic level)-/
+/-- This is the definition of indecomposability we should be using since it's more general
+(works at a lattice theoretic level). -/
 -- TODO: we don't need `a ≤ N` and `b ≤ N` in the implications
 def Indecomposable' (N : PersistenceSubmodule M) : Prop :=
   ∀ a b : PersistenceSubmodule M, a ≤ N → b ≤ N → a ⊓ b = ⊥ → a ⊔ b = N → a = ⊥ ∨ b = ⊥
@@ -156,7 +156,7 @@ lemma forall_indep {S D : Set α} (R : refinement S) :
   rw [decomposition_of_refinement] at hb'
   sorry
 
-lemma sSup_eq_top' {S : Set α} (R : refinement S):
+lemma sSup_eq_top' {S : Set α} (R : refinement S) :
     sSup (decomposition_of_refinement R) = sSup S := by
   sorry
 

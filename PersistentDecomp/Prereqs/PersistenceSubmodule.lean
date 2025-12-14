@@ -13,9 +13,9 @@ open CategoryTheory
 variable {C : Type} [Category C] {K : Type} [DivisionRing K] {M : C ⥤ ModuleCat K} {c d : C}
 
 variable (M) in
-/--A persistence submodule of a persistence module `M` is a family of submodules `N_c ≤ M_c`
+/-- A persistence submodule of a persistence module `M` is a family of submodules `N_c ≤ M_c`
 indexed by `c : C` that is compatible with the transition maps of `M`, in the sense that for
-all morphisms `c ⟶ d` in `C`, the induced morphism `M_c ⟶ M_d` sends `N_c` into `N_d`.-/
+all morphisms `c ⟶ d` in `C`, the induced morphism `M_c ⟶ M_d` sends `N_c` into `N_d`. -/
 structure PersistenceSubmodule where
   toFun (c : C) : Submodule K (M.obj c)
   map_le' {c d : C} (f : c ⟶ d) : (toFun c).map (ModuleCat.Hom.hom <| M.map f) ≤ toFun d
@@ -32,15 +32,11 @@ functor `M`, i.e if we have `f : c ⟶ d` then the image of `N c` by `M f` lies 
 lemma map_le (N : PersistenceSubmodule M) (f : c ⟶ d) :
     (N c).map (ModuleCat.Hom.hom <| M.map f) ≤ N d := N.map_le' _
 
-/--We can check equality of persistence modules pointwise-/
 @[ext]
 lemma ext {N₁ N₂ : PersistenceSubmodule M} (h : ∀ c, N₁ c = N₂ c) : N₁ = N₂ := DFunLike.ext _ _ h
 
-/--Persistence submodules are ordered pointwise. -/
 instance : PartialOrder (PersistenceSubmodule M) := PartialOrder.lift (⇑) DFunLike.coe_injective
 
-/-- There is a notion of a maximum of two persistence submodules `N N'` , namely the
-(pointwise) sum `c ↦ N_c + N'_c`-/
 instance : Max (PersistenceSubmodule M) where
   max N₁ N₂ := {
     toFun := fun c ↦ N₁ c ⊔ N₂ c
@@ -49,8 +45,6 @@ instance : Max (PersistenceSubmodule M) where
       rw [Submodule.map_sup]
       apply sup_le_sup (N₁.map_le f) (N₂.map_le f) }
 
-/-- There is a notion of a maximum of two persistence submodules `N N'` , namely the
-(pointwise) intersection `c ↦ N_c + N'_c`-/
 instance : Min (PersistenceSubmodule M) where
   min N₁ N₂ := {
     toFun := fun c ↦ N₁ c ⊓ N₂ c

@@ -10,13 +10,13 @@ sends a subset `I` of `C` to some constant `d : D` and the complement of `I` to 
 We then use this to construct interval modules.
 -/
 
-open CategoryTheory Classical CategoryTheory.Limits
+open CategoryTheory CategoryTheory.Limits
 
 universe u v
 variable {A : Type u} [Category.{v} A]
 variable {C : Type*} [Category C] (e : A) {S : Set C} {z : A} (hz : IsZero z)
 
-/--A subset `S ⊆ C` is good if for any pairs of morphisms `(u ⟶ v)` and `(v ⟶ w)` such that
+/-- A subset `S ⊆ C` is good if for any pairs of morphisms `(u ⟶ v)` and `(v ⟶ w)` such that
 `u, w ∈ S`, we must have `v ∈ S`. -/
 def good (S : Set C) : Prop := ∀ u v w : C, u ∈ S → w ∈ S → (u ⟶ v) → (v ⟶ w) → v ∈ S
 
@@ -30,6 +30,7 @@ end Interval
 
 variable (hS : good S)
 
+open scoped Classical in
 /-- Let `C` be an abelian category and `D` some arbitrary category. Say `S` is a subset of
 `D`, and `e` some arbitrary element of `C`. The **bump functor on `S` with value `e`** is the
 functor that sends elements of `S` to `e` and elements outside `s` to the zero element of `C`. -/
@@ -106,7 +107,7 @@ section IntervalModule
 
 variable (F : Type) [DivisionRing F]
 
-/--Definition of the action of an interval module on objects of `(ℝ, ≤)`. For an interval
+/-- Definition of the action of an interval module on objects of `(ℝ, ≤)`. For an interval
 `I = [a,b]`, `x` is mapped to the `F`-module F if `x` is in `I`, and to `{0}` otherwise. -/
 noncomputable def IntervalModuleObject (I : Interval ℝ) : ℝ ⥤ ModuleCat F :=
   Bump (ModuleCat.of F F) (isZero_zero _) I.isGood
@@ -114,24 +115,24 @@ noncomputable def IntervalModuleObject (I : Interval ℝ) : ℝ ⥤ ModuleCat F 
 -- Set up custom notation so we can write the `F`-persistent module of an interval `I` as `F[I]`
 notation3:max F"["I"]" => IntervalModuleObject F I
 
-/--The interval module of the empty interval is the zero object in the category of persistent
+/-- The interval module of the empty interval is the zero object in the category of persistent
 modules. -/
 lemma IsZero_IntervalModuleObject'_zero : IsZero (IntervalModuleObject F (⊥ : Interval ℝ)) := by
   sorry
 
 
-/--The map of interval modules induced by an inclusion of intervals. To construct this we
-should first construct the analogous version for bump functors-/
+/-- The map of interval modules induced by an inclusion of intervals. To construct this we
+should first construct the analogous version for bump functors. -/
 noncomputable def IntervalModuleMorphism {I J : Interval ℝ} (hIJ : I ≤ J) : F[I] ⟶ F[J] := by
   sorry
 
-/--The construction above preserves compositions-/
+/-- The construction above preserves compositions. -/
 noncomputable def IntervalModuleMorphism_comp {I J K : Interval ℝ} (hIJ : I ≤ J)
   (hJK : J ≤ K) : IntervalModuleMorphism F hIJ ≫ IntervalModuleMorphism F hJK =
     IntervalModuleMorphism F (le_trans hIJ hJK) := by
   sorry
 
-/--The construction above sends the "identity" inclusion to the identity morphism-/
+/-- The construction above sends the "identity" inclusion to the identity morphism. -/
 lemma IntervalModuleMorphism_identity (I : Interval ℝ) :
   IntervalModuleMorphism F (le_refl I) = 𝟙 _ := by
   sorry

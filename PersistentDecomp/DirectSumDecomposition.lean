@@ -9,17 +9,16 @@ import PersistentDecomp.Prereqs.PersistenceSubmodule
 
 In this file, we define the type of direct sum decompositions of a persistence module `M`.
 This has a natural order given by refinements.
-
 -/
 
-open CategoryTheory Classical CategoryTheory.Limits DirectSum
+open CategoryTheory CategoryTheory.Limits DirectSum
 open CompleteLattice hiding sSup_le -- TODO: Fix in mathlib
 
 variable {C : Type} [Category.{0, 0} C] {K : Type} [DivisionRing K] {M : C ⥤ ModuleCat K}
 
 variable (M) in
-/--A direct sum decompositon of `M ` is a set of non-zero submodules
-that are linearly independent and whose supremum is the whole of `M `-/
+/-- A direct sum decompositon of `M ` is a set of non-zero submodules
+that are linearly independent and whose supremum is the whole of `M`. -/
 @[ext]
 structure DirectSumDecomposition where
   carrier : Set (PersistenceSubmodule M)
@@ -45,6 +44,7 @@ lemma pointwise_iSup_eq_top (D : DirectSumDecomposition M) (x : C) : ⨆ p ∈ D
 
 lemma pointwise_sSup_eq_top (D : DirectSumDecomposition M) (x : C) : ⨆ p ∈ D, p x = ⊤ := sorry
 
+open scoped Classical in
 lemma isInternal (I : DirectSumDecomposition M) (c : C) :
     IsInternal (M := M.obj c) (S := Submodule K (M.obj c)) fun p : I ↦ p.val c := by
   rw [DirectSum.isInternal_submodule_iff_iSupIndep_and_iSup_eq_top]
@@ -55,14 +55,14 @@ lemma isInternal (I : DirectSumDecomposition M) (c : C) :
 variable {M : C ⥤ ModuleCat K} in
 /-- Let `D₁, D₂` be direct sum decomposition of `M` we say that `D₁` is a refinement of `D₂` if for
 every submodule `N` that appears in `D`, there is a subset `B` of submodules that appear
-in `D₁` such that `∑ T ∈ B, T = N`  -/
+in `D₁` such that `∑ T ∈ B, T = N`. -/
 def IsRefinement (D₁ D₂ : DirectSumDecomposition M) : Prop :=
   ∀ ⦃N⦄, N ∈ D₂ → ∃ B : Set (PersistenceSubmodule M), B ⊆ D₁ ∧ N = sSup B
 
 variable {M : C ⥤ ModuleCat K} in
-/--Suppose `I, J` are direct sum decompositions of `M ` and `J` is a refinement of `I`.
+/-- Suppose `I, J` are direct sum decompositions of `M ` and `J` is a refinement of `I`.
 Then for any submodule `N` appearing in `J`, there is a submodule  `A` appearing in `I`
-such that `N ≤ A`.-/
+such that `N ≤ A`. -/
 lemma RefinementMapSurj' (I : DirectSumDecomposition M) (J : DirectSumDecomposition M)
   (h : IsRefinement J I) : ∀ N : J, ∃ A : I, N.val ≤ A.val := by
   by_contra! h_contra
@@ -163,8 +163,8 @@ instance : Preorder (DirectSumDecomposition M) where
         exact le_sSup h_a_in_A
       rwa [h_aux']
 
-/--The refinement relation is antisymmetric. This (combined with the above)
-means that it defines a partial order on direct sum decompositions.-/
+/-- The refinement relation is antisymmetric. This (combined with the above)
+means that it defines a partial order on direct sum decompositions. -/
 instance DirectSumDecompLE : PartialOrder (DirectSumDecomposition M) where
   le_antisymm := by
     intro I J h_I_le_J h_J_le_I
@@ -222,15 +222,15 @@ def refinement (B : ∀ N ∈ D, Set (PersistenceSubmodule M))
     sorry
   not_bot_mem' := by simp [Set.mem_iUnion, hB'']
 
-/--The direct sum decomposition `refinement B hB hB' hB''` is a refinement of `D`-/
+/-- The direct sum decomposition `refinement B hB hB' hB''` is a refinement of `D` -/
 lemma refinement_le (B : ∀ N ∈ D, Set (PersistenceSubmodule M))
     (hB : ∀ N hN, N = sSup (B N hN))
     (hB' : ∀ N hN, sSupIndep (B N hN))
     (hB'' : ∀ N hN, ⊥ ∉ B N hN) :
     D ≤ refinement B hB hB' hB'' := sorry
 
-/--If one of the decompositions of the `N`'s is non-trivial then `refinement B hB hB' hB''`
-is a strict refinement of `M `-/
+/-- If one of the decompositions of the `N`'s is non-trivial then `refinement B hB hB' hB''`
+is a strict refinement of `M ` -/
 lemma refinement_lt_of_exists_ne_singleton (B : ∀ N ∈ D, Set (PersistenceSubmodule M))
     (hB : ∀ N hN, N = sSup (B N hN))
     (hB' : ∀ N hN, sSupIndep (B N hN))
@@ -238,11 +238,12 @@ lemma refinement_lt_of_exists_ne_singleton (B : ∀ N ∈ D, Set (PersistenceSub
     (H : ∃ (N : PersistenceSubmodule M) (hN : N ∈ D), B N hN ≠ {N}) :
     D < refinement B hB hB' hB'' := sorry
 
-/--If `D` is a direct sum decomposition that is maximal with respect to refinements
+/-- If `D` is a direct sum decomposition that is maximal with respect to refinements
 then every submodule that appears in `D` is indecomposable. -/
 lemma Indecomposable_of_mem_Min_Direct_sum_decomposition
     (D : DirectSumDecomposition M) (N : PersistenceSubmodule M) (hN : N ∈ D) (hmax : IsMax D) :
     Indecomposable N := by
+  classical
   by_contra hNotMax
   simp only [_root_.Indecomposable, not_forall, not_or] at hNotMax
   obtain ⟨x, y, hxy, rfl, hx, hy⟩ := hNotMax

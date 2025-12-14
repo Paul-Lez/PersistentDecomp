@@ -52,7 +52,7 @@ structure PtwiseFinitePersMod (C : Type*) [Category C] (K : Type*)
 --C ⥤ Modules over R, this defines the product F(X) × G(X).
 @[simp]
 def ProductModule (R : Type) [DivisionRing R] (C : Type) [Category C]
-  (F : C ⥤ ModuleCat R) (G : C ⥤ ModuleCat R) (X : C): ModuleCat R :=
+  (F : C ⥤ ModuleCat R) (G : C ⥤ ModuleCat R) (X : C) : ModuleCat R :=
   ModuleCat.of R ((F.obj X) × (G.obj X))
 
 --Given R a field, C a category, X, Y ∈ Obj(C), f : X ⟶ Y a linear map
@@ -155,7 +155,7 @@ def IsIndecomposable (R : Type) [DivisionRing R] (C : Type) [Category C]
   SubmodDecomp R C M N₁ N₂ → (M = N₁.baseFunctor) ∨ (M = N₂.baseFunctor)
 
 
-theorem IndecAndDecImpliesEq  (R : Type) [DivisionRing R] (C : Type) [Category C]
+theorem IndecAndDecImpliesEq (R : Type) [DivisionRing R] (C : Type) [Category C]
   (M : C ⥤ ModuleCat R) (N₁ : Subfunctor R C M) (N₂ : Subfunctor R C M)
   (hdec : SubmodDecomp R C M N₁ N₂) (hindec : IsIndecomposable R C M)
   : (M = N₁.baseFunctor) ∨ (M = N₂.baseFunctor) := by
@@ -221,7 +221,7 @@ lemma OneDef : (1 : EndRing C R F) = (𝟙 F) := by
   rfl
 
 @[simp]
-lemma ZeroEndAppIsZero : (fun X => 0 : ∀ X : C, F.obj X →ₗ[R] F.obj X) = 0 := by
+lemma ZeroEndAppIsZero : (fun _ => 0 : ∀ X : C, F.obj X →ₗ[R] F.obj X) = 0 := by
   rfl
 
 @[simp]
@@ -256,7 +256,7 @@ lemma NegAppModule (θ : EndRing C R F) (X : C) (x : F.obj X) :
   rfl
 
 @[simp]
-lemma MulDef (e : EndRing C R F) (f : EndRing C R F):
+lemma MulDef (e : EndRing C R F) (f : EndRing C R F) :
   (e * f) = f ≫ e := by
   rfl
 
@@ -339,8 +339,8 @@ theorem Step2_2 (α : X ⟶ Y) (M : PtwiseFinitePersMod C R) (η : EndRing C R M
 theorem Step3_1 (M : PtwiseFinitePersMod C R) (α : X ⟶ Y) (n : ℕ)
     (ηx : M.to_functor.obj X →ₗ[R] M.to_functor.obj X)
     (ηy : M.to_functor.obj Y →ₗ[R] M.to_functor.obj Y)
-    (hnat : M.to_functor.map α ≫ ModuleCat.ofHom (ηy^n) =
-      ModuleCat.ofHom (ηx^n) ≫ M.to_functor.map α)
+    (hnat : M.to_functor.map α ≫ ModuleCat.ofHom (ηy ^ n) =
+      ModuleCat.ofHom (ηx ^ n) ≫ M.to_functor.map α)
     (x : (LinearMap.ker (ηx ^ n))) :
     (M.to_functor.map α ≫ ModuleCat.ofHom (ηy ^ n)) x = 0 := by
   rw [hnat]
