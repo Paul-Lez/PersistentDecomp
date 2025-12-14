@@ -94,7 +94,7 @@ lemma RefinementMapSurj' (I : DirectSumDecomposition M) (J : DirectSumDecomposit
     simp_rw [le_antisymm_iff, sSup_le_iff]
     constructor
     · intro b h_mem
-      simp [B] at h_mem
+      simp only [exists_and_right, Subtype.exists, exists_prop, Set.mem_setOf_eq, B] at h_mem
       rcases h_mem with ⟨h₁, _⟩
       rcases h₁ with ⟨a, h_a, h_le⟩
       exact le_sSup_of_le h_a h_le
@@ -103,7 +103,7 @@ lemma RefinementMapSurj' (I : DirectSumDecomposition M) (J : DirectSumDecomposit
       choose f hf hf' using h
       refine ⟨f A.prop, ?_, by rw [← hf' A.prop]⟩
       intro α h_α
-      simp [B]
+      simp only [exists_and_right, Subtype.exists, exists_prop, Set.mem_setOf_eq, B]
       refine ⟨⟨A, A.prop, ?_⟩, hf A.prop h_α⟩
       rw [hf' A.prop]
       exact le_sSup h_α
@@ -113,7 +113,8 @@ lemma RefinementMapSurj' (I : DirectSumDecomposition M) (J : DirectSumDecomposit
     exact le_trans h_C.right (sSup_le_sSup h_C.left)
   have h_aux' : N₀.val ∉ B := by
     intro h_contra
-    simp [B] at h_contra
+    simp only [exists_and_right, Subtype.exists, exists_prop, Set.mem_setOf_eq, SetLike.coe_mem,
+      and_true, B] at h_contra
     rcases h_contra with ⟨A, h₁, h₂⟩
     exact (h_not_le (⟨A, h₁⟩) h₂)
   have h_disj : Disjoint N₀.val (sSup B) := by
@@ -151,7 +152,7 @@ lemma UniqueGE (I : DirectSumDecomposition M) (J : DirectSumDecomposition M)
     exact (sSupIndep_pair h_neq').mp (sSupIndep.mono I.sSupIndep' h_sub)
   have h_le' : N.val ≤ A.val ⊓ B.val := le_inf h_le.1 h_le.2
   have h_eq_bot : N ≤ (⊥ : PersistenceSubmodule M) := h_le'.trans <| disjoint_iff_inf_le.mp h_disj
-  simp at h_eq_bot
+  simp only [le_bot_iff] at h_eq_bot
   exact (J.not_bot_mem' (h_eq_bot ▸ N.prop))
 
 /-- Let `I, J` be direct sum decompositions of `M` with `J` a refinement of `I`. Then
@@ -181,8 +182,7 @@ lemma RefinementMapLE (I : DirectSumDecomposition M) (J : DirectSumDecomposition
   obtain rfl | hIJ := eq_or_ne I J
   · simp [RefinementMapId]
   · intro N
-    simp [RefinementMap, hIJ]
-    exact Exists.choose_spec (RefinementMapSurj' I J h N)
+    simpa [RefinementMap, hIJ] using Exists.choose_spec (RefinementMapSurj' I J h N)
 
 /-- Two modules that both decompose the same element are sent to the same submodule by the
 `RefinementMap`. -/

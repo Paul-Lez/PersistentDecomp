@@ -31,8 +31,7 @@ noncomputable def ToTypeCat : DirectSumDecomposition M ⥤ Type where
     have h₁ := leOfHom f
     have h₂ := leOfHom g
     ext N : 2
-    simp
-    exact RefinmentMapFunctorial .. --THANK YOU FOR .. YAEL!!
+    simpa using RefinmentMapFunctorial .. --THANK YOU FOR .. YAEL!!
 
 /-- This is possibly useful to make things a bit cleaner so let's keep it for now but possibly
 remove it later -/
@@ -64,8 +63,7 @@ noncomputable def limit_elt_mk (hT : IsChain LE.le T) (f : T → PersistenceSubm
   (h_le : ∀ (I J : T), I ≤ J → f J ≤ f I) (h_mem : ∀ I : T, (f I) ∈ I.val) : (L T) := by
   let f' : (I : T) → (Pone T).obj I := by
     intro I
-    simp[Pone, ToTypeCat]
-    exact ⟨(f I), h_mem I⟩
+    simpa [Pone, ToTypeCat] using ⟨(f I), h_mem I⟩
   have h_compatible : (∀ (j j' : ↑T) (f : j ⟶ j'), (Pone T).map f (f' j) = f' j') := by
     intro I J g
     have h_ij := leOfHom g
