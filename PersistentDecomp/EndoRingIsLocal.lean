@@ -304,9 +304,8 @@ open LinearMap
 
 --Restate Fitting's Lemma with ∃ as opposed to using the language of filters.
 --This is definitely the stupidest way of doing this. Improve later.
-theorem ExistsFittingn (R : Type) [DivisionRing R] (M : ModuleCat R)
-  [Module.Finite R M] (f : M →ₗ[R] M)
-  : ∃ n, (IsCompl (LinearMap.ker (f ^ n)) (range (f ^ n))) := by
+theorem ExistsFittingn (R : Type) [DivisionRing R] (M : ModuleCat.{0} R) [Module.Finite R M]
+    (f : M →ₗ[R] M) : ∃ n, (IsCompl (LinearMap.ker (f ^ n)) (range (f ^ n))) := by
   have h : ∀ᶠ n in atTop, IsCompl (LinearMap.ker (f ^ n)) (LinearMap.range (f ^ n)) :=
     LinearMap.eventually_isCompl_ker_pow_range_pow f
   have hh : ∃ v ∈ atTop, ∀ y ∈ v, IsCompl (LinearMap.ker (f ^ y)) (range (f ^ y)) := by
