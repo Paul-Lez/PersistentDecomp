@@ -1,7 +1,9 @@
-import Mathlib.Algebra.DirectSum.Module
-import PersistentDecomp.Mathlib.Order.Disjoint
-import PersistentDecomp.Prereqs.Indecomposable
-import PersistentDecomp.Prereqs.PersistenceSubmodule
+module
+
+public import Mathlib.Algebra.DirectSum.Module
+public import PersistentDecomp.Mathlib.Order.Disjoint
+public import PersistentDecomp.Prereqs.Indecomposable
+public import PersistentDecomp.Prereqs.PersistenceSubmodule
 
 /-!
 
@@ -10,6 +12,8 @@ import PersistentDecomp.Prereqs.PersistenceSubmodule
 In this file, we define the type of direct sum decompositions of a persistence module `M`.
 This has a natural order given by refinements.
 -/
+
+@[expose] public section
 
 open CategoryTheory CategoryTheory.Limits DirectSum
 open CompleteLattice hiding sSup_le -- TODO: Fix in mathlib

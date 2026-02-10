@@ -1,4 +1,8 @@
-import Mathlib.Algebra.Module.Submodule.Map
+module
+
+public import Mathlib.Algebra.Module.Submodule.Map
+
+public section
 
 variable {R : Type*} {R₂ : Type*}
 variable {M : Type*} {M₂ : Type*}

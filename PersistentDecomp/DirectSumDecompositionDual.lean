@@ -1,7 +1,9 @@
-import Mathlib.Algebra.DirectSum.Module
-import PersistentDecomp.Mathlib.Order.Disjoint
-import PersistentDecomp.Prereqs.Indecomposable
-import PersistentDecomp.Prereqs.PersistenceSubmodule
+module
+
+public import Mathlib.Algebra.DirectSum.Module
+public import PersistentDecomp.Mathlib.Order.Disjoint
+public import PersistentDecomp.Prereqs.Indecomposable
+public import PersistentDecomp.Prereqs.PersistenceSubmodule
 
 /-!
 
@@ -14,6 +16,8 @@ Relation to the material in `PersistentDecomp.DirectSumDecompositionDual.lean`:
 here, we are considering the *dual order* of the one constructed in the other file.
 
 -/
+
+@[expose] public section
 
 open CategoryTheory CategoryTheory.Limits DirectSum
 open CompleteLattice hiding sSup_le -- TODO: Fix in mathlib

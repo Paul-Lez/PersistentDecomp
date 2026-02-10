@@ -1,4 +1,8 @@
-import Mathlib.Order.Disjoint
+module
+
+public import Mathlib.Order.Disjoint
+
+@[expose] public section
 
 variable {α : Type*} [Lattice α] [OrderBot α]
 

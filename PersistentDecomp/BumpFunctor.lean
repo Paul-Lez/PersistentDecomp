@@ -1,6 +1,8 @@
-import Mathlib.Algebra.Category.ModuleCat.Basic
-import Mathlib.Data.Real.Basic
-import PersistentDecomp.Mathlib.Order.Interval.Basic
+module
+
+public import Mathlib.Algebra.Category.ModuleCat.Basic
+public import Mathlib.Data.Real.Basic
+public import PersistentDecomp.Mathlib.Order.Interval.Basic
 
 /-!
 # Bump Functors and Interval Modules
@@ -9,6 +11,8 @@ In this file we the notion of a "bump functor", i.e. a functor `C ⥤ D` that
 sends a subset `I` of `C` to some constant `d : D` and the complement of `I` to zero.
 We then use this to construct interval modules.
 -/
+
+@[expose] public section
 
 open CategoryTheory CategoryTheory.Limits
 

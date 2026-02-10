@@ -1,6 +1,10 @@
-import Mathlib.Algebra.Category.ModuleCat.Basic
-import Mathlib.Algebra.Module.Submodule.Range
-import PersistentDecomp.Mathlib.Algebra.Module.Submodule.Map
+module
+
+public import Mathlib.Algebra.Category.ModuleCat.Basic
+public import Mathlib.Algebra.Module.Submodule.Range
+public import PersistentDecomp.Mathlib.Algebra.Module.Submodule.Map
+
+public section
 
 /-!
 # Persistence Submodules

@@ -1,4 +1,8 @@
-import Mathlib.Order.Disjoint
+module
+
+public import Mathlib.Order.Disjoint
+
+public section
 
 theorem right_lt_sup_of_left_ne_bot {α : Type*} [SemilatticeSup α] [OrderBot α] {a b : α}
     (h : Disjoint a b) (ha : a ≠ ⊥) : b < a ⊔ b :=

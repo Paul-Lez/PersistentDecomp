@@ -1,4 +1,8 @@
-import Mathlib.Order.SupIndep
+module
+
+public import Mathlib.Order.SupIndep
+
+public section
 
 open CompleteLattice
 

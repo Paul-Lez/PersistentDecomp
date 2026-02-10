@@ -1,5 +1,9 @@
-import Mathlib.Order.Interval.Basic
-import Mathlib.Order.Interval.Set.OrdConnected
+module
+
+public import Mathlib.Order.Interval.Basic
+public import Mathlib.Order.Interval.Set.OrdConnected
+
+public section
 
 open Set
 

@@ -1,5 +1,9 @@
-import Mathlib.Algebra.DirectSum.Decomposition
-import Mathlib.Algebra.Group.Subgroup.Basic
+module
+
+public import Mathlib.Algebra.DirectSum.Decomposition
+public import Mathlib.Algebra.Group.Subgroup.Basic
+
+public section
 
 namespace DirectSum
 variable {ι M S : Type*} [DecidableEq ι] [AddCommGroup M] [SetLike S M] [AddSubgroupClass S M]

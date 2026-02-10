@@ -1,5 +1,7 @@
-import Mathlib.Algebra.Category.ModuleCat.Abelian
-import Mathlib.RingTheory.Artinian.Module
+module
+
+public import Mathlib.Algebra.Category.ModuleCat.Abelian
+public import Mathlib.RingTheory.Artinian.Module
 
 /-!
 Work left to do
@@ -29,6 +31,8 @@ This would let us temporarily move forward with the proof without fussing about 
 exact definition of large products of persistence modules. However, we will need to
 look into this at some point - it's required to finish the proof of step 2.
 -/
+
+public section
 
 open CategoryTheory Filter
 

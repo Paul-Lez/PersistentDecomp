@@ -1,6 +1,8 @@
-import Mathlib.CategoryTheory.Limits.Types.Limits
-import PersistentDecomp.DirectSumDecompositionDual
-import PersistentDecomp.Mathlib.Algebra.DirectSum.Basic
+module
+
+public import Mathlib.CategoryTheory.Limits.Types.Limits
+public import PersistentDecomp.DirectSumDecompositionDual
+public import PersistentDecomp.Mathlib.Algebra.DirectSum.Basic
 
 /-!
 In this file we sketch what we'll need to prove to
@@ -10,6 +12,8 @@ we can apply Zorn's lemma.
 For now we work with types in the 1-th universe. To make the code universe polymorphic we'll need
 to make a few edits below
 -/
+
+@[expose] public section
 
 open CategoryTheory CategoryTheory.Limits DirectSum Dual DirectSumDecomposition
 

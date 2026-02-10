@@ -1,4 +1,8 @@
-import Mathlib.Data.DFinsupp.BigOperators
+module
+
+public import Mathlib.Data.DFinsupp.BigOperators
+
+public section
 
 @[to_additive (attr := simp)]
 lemma SubmonoidClass.coe_dfinsuppProd {B ι N : Type*} {M : ι → Type*} [DecidableEq ι]

@@ -1,13 +1,15 @@
-import PersistentDecomp.BumpFunctor
-import PersistentDecomp.DirectSumDecomposition
-import PersistentDecomp.DirectSumDecompositionDual
-import PersistentDecomp.EndoRingIsLocal
-import PersistentDecomp.Mathlib.Algebra.DirectSum.Basic
-import PersistentDecomp.Mathlib.Algebra.Module.Submodule.Map
-import PersistentDecomp.Mathlib.Data.DFinsupp.BigOperators
-import PersistentDecomp.Mathlib.Order.Disjoint
-import PersistentDecomp.Mathlib.Order.Interval.Basic
-import PersistentDecomp.Mathlib.Order.SupIndep
-import PersistentDecomp.MaximalDecompExists
-import PersistentDecomp.Prereqs.Indecomposable
-import PersistentDecomp.Prereqs.PersistenceSubmodule
+module
+
+public import PersistentDecomp.BumpFunctor
+public import PersistentDecomp.DirectSumDecomposition
+public import PersistentDecomp.DirectSumDecompositionDual
+public import PersistentDecomp.EndoRingIsLocal
+public import PersistentDecomp.Mathlib.Algebra.DirectSum.Basic
+public import PersistentDecomp.Mathlib.Algebra.Module.Submodule.Map
+public import PersistentDecomp.Mathlib.Data.DFinsupp.BigOperators
+public import PersistentDecomp.Mathlib.Order.Disjoint
+public import PersistentDecomp.Mathlib.Order.Interval.Basic
+public import PersistentDecomp.Mathlib.Order.SupIndep
+public import PersistentDecomp.MaximalDecompExists
+public import PersistentDecomp.Prereqs.Indecomposable
+public import PersistentDecomp.Prereqs.PersistenceSubmodule
