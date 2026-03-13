@@ -42,8 +42,6 @@ instance : SetLike (DirectSumDecomposition M) (PersistenceSubmodule M) where
   coe := carrier
   coe_injective' D₁ D₂ := by cases D₁; congr!
 
-attribute [-instance] SetLike.instPartialOrder
-
 protected lemma sSupIndep (D : DirectSumDecomposition M) : sSupIndep (SetLike.coe D) := D.sSupIndep'
 
 lemma sSup_eq_top (D : DirectSumDecomposition M) : sSup (SetLike.coe D) = ⊤ := D.sSup_eq_top'

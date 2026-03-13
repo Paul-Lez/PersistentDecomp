@@ -66,7 +66,7 @@ lemma inf_apply (N₁ N₂ : PersistenceSubmodule M) (c : C) : (N₁ ⊓ N₂) c
 /-- There's a notion of the supremum of two submodules, given by `+`,
 and a notion of an infimum, given by `∩`. -/
 instance : Lattice (PersistenceSubmodule M) :=
-  DFunLike.coe_injective.lattice _ coe_sup coe_inf
+  DFunLike.coe_injective.lattice _ .rfl .rfl coe_sup coe_inf
 
 /-- There's a notion of a minimal persistence submodule, namely `0`. -/
 instance : OrderBot (PersistenceSubmodule M) where
@@ -130,6 +130,7 @@ lemma iInf_apply {ι : Sort*} (f : ι → PersistenceSubmodule M) (c : C) :
 
 /-- The sups and infs over possibly infinite sets are compatible with the lattice structure -/
 instance : CompleteLattice (PersistenceSubmodule M) :=
-  DFunLike.coe_injective.completeLattice _ coe_sup coe_inf coe_sSup coe_sInf coe_top coe_bot
+  DFunLike.coe_injective.completeLattice _ .rfl .rfl coe_sup coe_inf coe_sSup coe_sInf coe_top
+    coe_bot
 
 end PersistenceSubmodule
