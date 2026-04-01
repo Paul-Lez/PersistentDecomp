@@ -11,4 +11,4 @@ non-bot elements. -/
 def Indecomposable (a : α) : Prop := ∀ ⦃b c⦄, Disjoint b c → b ⊔ c = a → b = ⊥ ∨ c = ⊥
 
 /-- The bottom element of a lattice is always indecomposable. -/
-lemma Indecomposable.bot : Indecomposable (⊥ : α) := fun _ ↦ by aesop
+lemma Indecomposable.bot : Indecomposable (⊥ : α) := fun _ ↦ by simp +contextual

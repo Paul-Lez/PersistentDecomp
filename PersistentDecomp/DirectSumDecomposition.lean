@@ -16,7 +16,6 @@ This has a natural order given by refinements.
 @[expose] public section
 
 open CategoryTheory CategoryTheory.Limits DirectSum
-open CompleteLattice hiding sSup_le -- TODO: Fix in mathlib
 
 variable {C : Type} [Category.{0, 0} C] {K : Type} [DivisionRing K] {M : C ⥤ ModuleCat K}
 
@@ -173,8 +172,7 @@ instance DirectSumDecompLE : PartialOrder (DirectSumDecomposition M) where
     intro I J h_I_le_J h_J_le_I
     have h_final_left : ∀ N ∈ J, N ∈ I := by
       intro N
-      by_contra h_neg
-      push_neg at h_neg
+      by_contra! h_neg
       rcases h_neg with ⟨h_N_in_J, h_N_not_in_I⟩
       let N' : J := ⟨N, h_N_in_J⟩
       have h_A : ∃ A : I, N ≤ A.val := by

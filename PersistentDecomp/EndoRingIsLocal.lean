@@ -46,10 +46,8 @@ def ZeroModule (C K : Type*) [Category C] [DivisionRing K] : C ⥤ ModuleCat K w
 
 --Pointwise finite persistence modules over some small category C.
 structure PtwiseFinitePersMod (C : Type*) [Category C] (K : Type*)
-  [DivisionRing K] where
-  to_functor : C ⥤ ModuleCat K
-  finite_cond (X : C) : Module.Finite K (to_functor.obj X)
-
+  [DivisionRing K] extends C ⥤ ModuleCat.{0} K where
+  finite_cond (X : C) : Module.Finite K (toFunctor.obj X)
 
 --Below : product of persistence modules
 --Given R a field, C a category, X ∈ Obj(C) and F, G two functors
@@ -324,15 +322,15 @@ theorem ExistsFittingn (R : Type) [DivisionRing R] (M : ModuleCat.{0} R) [Module
 
 
 --substep 2
-theorem Step2 (α : X ⟶ Y) (M : PtwiseFinitePersMod C R) (η : EndRing C R M.to_functor) :
-  (M.to_functor.map α) ≫ (η.app Y) = (η.app X) ≫ (M.to_functor.map α) := by
+theorem Step2 (α : X ⟶ Y) (M : PtwiseFinitePersMod C R) (η : EndRing C R M.toFunctor) :
+  (M.toFunctor.map α) ≫ (η.app Y) = (η.app X) ≫ (M.toFunctor.map α) := by
   apply η.naturality
 
-theorem Step2_2 (α : X ⟶ Y) (M : PtwiseFinitePersMod C R) (η : EndRing C R M.to_functor) :
-    M.to_functor.map α ≫ (η^n).app Y = (η^n).app X ≫ M.to_functor.map α := by
+theorem Step2_2 (α : X ⟶ Y) (M : PtwiseFinitePersMod C R) (η : EndRing C R M.toFunctor) :
+    M.toFunctor.map α ≫ (η^n).app Y = (η^n).app X ≫ M.toFunctor.map α := by
   exact Step2 C R X Y α M (η^n)
 
---I would really prefer for ηx and ηy to be unified under a single (η : EndRing C R M.to_functor)
+--I would really prefer for ηx and ηy to be unified under a single (η : EndRing C R M.toFunctor)
 --argument here. The issue this creates is that then η.app X and η.app Y are intepreted as
 --morphisms and not as linear maps which prevents the use of the ^ notation. For now,
 --ηx and ηy are separated and a naturality hypothesis replaces the naturality from η.
@@ -340,43 +338,43 @@ theorem Step2_2 (α : X ⟶ Y) (M : PtwiseFinitePersMod C R) (η : EndRing C R M
 --Only a single parameter n is taken for both decompositions. In practice there would be
 --2, one at X and one at Y, but we can just pick the maximum.
 theorem Step3_1 (M : PtwiseFinitePersMod C R) (α : X ⟶ Y) (n : ℕ)
-    (ηx : M.to_functor.obj X →ₗ[R] M.to_functor.obj X)
-    (ηy : M.to_functor.obj Y →ₗ[R] M.to_functor.obj Y)
-    (hnat : M.to_functor.map α ≫ ModuleCat.ofHom (ηy ^ n) =
-      ModuleCat.ofHom (ηx ^ n) ≫ M.to_functor.map α)
+    (ηx : M.toFunctor.obj X →ₗ[R] M.toFunctor.obj X)
+    (ηy : M.toFunctor.obj Y →ₗ[R] M.toFunctor.obj Y)
+    (hnat : M.toFunctor.map α ≫ ModuleCat.ofHom (ηy ^ n) =
+      ModuleCat.ofHom (ηx ^ n) ≫ M.toFunctor.map α)
     (x : (LinearMap.ker (ηx ^ n))) :
-    (M.to_functor.map α ≫ ModuleCat.ofHom (ηy ^ n)) x = 0 := by
+    (M.toFunctor.map α ≫ ModuleCat.ofHom (ηy ^ n)) x = 0 := by
   rw [hnat]
   dsimp
   rw [LinearMap.map_coe_ker]
   simp
 
 theorem Step3_2 (M : PtwiseFinitePersMod C R) (α : X ⟶ Y) (n : ℕ)
-    (ηx : M.to_functor.obj X →ₗ[R] M.to_functor.obj X)
-    (ηy : M.to_functor.obj Y →ₗ[R] M.to_functor.obj Y)
-    (hnat : M.to_functor.map α ≫ ModuleCat.ofHom (ηy ^ n) =
-      ModuleCat.ofHom (ηx ^ n) ≫ M.to_functor.map α)
-    (x : M.to_functor.obj X)
+    (ηx : M.toFunctor.obj X →ₗ[R] M.toFunctor.obj X)
+    (ηy : M.toFunctor.obj Y →ₗ[R] M.toFunctor.obj Y)
+    (hnat : M.toFunctor.map α ≫ ModuleCat.ofHom (ηy ^ n) =
+      ModuleCat.ofHom (ηx ^ n) ≫ M.toFunctor.map α)
+    (x : M.toFunctor.obj X)
     (hx : x ∈ LinearMap.range (ηx ^ n)) :
-    ∃ y : M.to_functor.obj Y, M.to_functor.map α x = y ∧ y ∈ LinearMap.range (ηy ^ n) := by
+    ∃ y : M.toFunctor.obj Y, M.toFunctor.map α x = y ∧ y ∈ LinearMap.range (ηy ^ n) := by
   have hmem : ∃ z, (ηx^n) z = x := by
     apply LinearMap.mem_range.mp at hx
     exact hx
   let z := Exists.choose hmem
   have hz : (ηx^n) z = x := by
     apply Exists.choose_spec hmem
-  use (M.to_functor.map α ≫ ModuleCat.ofHom (ηy ^ n)) z
+  use (M.toFunctor.map α ≫ ModuleCat.ofHom (ηy ^ n)) z
   constructor
   · rw [hnat]
     dsimp
     rw [hz]
   · dsimp
     apply LinearMap.mem_range.mpr
-    use M.to_functor.map α z
+    use M.toFunctor.map α z
 
--- theorem EndRingLocal (M : PtwiseFinitePersMod C R) (N₁ : Subfunctor R C M.to_functor)
---     (N₂ : Subfunctor R C M.to_functor) (hdec : SubmodDecomp R C M.to_functor N₁ N₂)
---     (hindec : IsIndecomposable R C M.to_functor) (η : EndRing C R M.to_functor)
---     (heq : M.to_functor = N₁.baseFunctor) (hrange : ∀ X : C, IsUnit (η.app X))
+-- theorem EndRingLocal (M : PtwiseFinitePersMod C R) (N₁ : Subfunctor R C M.toFunctor)
+--     (N₂ : Subfunctor R C M.toFunctor) (hdec : SubmodDecomp R C M.toFunctor N₁ N₂)
+--     (hindec : IsIndecomposable R C M.toFunctor) (η : EndRing C R M.toFunctor)
+--     (heq : M.toFunctor = N₁.baseFunctor) (hrange : ∀ X : C, IsUnit (η.app X))
 --  : (IsUnit η) := by
 --   sorry

@@ -19,6 +19,7 @@ lemma isInternal_iff [DecidableEq M] :
   rw [AddSubgroup.eq_bot_iff_forall]
   simp [AddMonoidHom.mem_ker, DirectSum.coeAddMonoidHom_eq_dfinsuppSum]
 
+set_option backward.isDefEq.respectTransparency false in
 lemma IsInternal.eq_zero_of_subsingleton_preimage (hA : IsInternal A) {κ : Type*} (g : κ → ι)
     (f : κ → M) (s : Finset κ) (hg : (s : Set κ).InjOn g) (hfg : ∀ k, f k ∈ A (g k))
     (hf₀ : ∑ k ∈ s, f k = 0) {k : κ} (hk : k ∈ s) : f k = 0 := by

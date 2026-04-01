@@ -20,7 +20,6 @@ here, we are considering the *dual order* of the one constructed in the other fi
 @[expose] public section
 
 open CategoryTheory CategoryTheory.Limits DirectSum
-open CompleteLattice hiding sSup_le -- TODO: Fix in mathlib
 
 namespace Dual
 
@@ -138,8 +137,7 @@ lemma RefinementMapSurj' (I : DirectSumDecomposition M) (J : DirectSumDecomposit
 and `A, B` are submodules appearing in `I` such that `N ≤ A, B`. Then `A = B`. -/
 lemma UniqueGE (I : DirectSumDecomposition M) (J : DirectSumDecomposition M)
   (N : J) (A : I) (B : I) : N.val ≤ A ∧ N.val ≤ B → A = B := by
-  by_contra h'
-  push_neg at h'
+  by_contra! h'
   rcases h' with ⟨h_le, h_neq⟩
   have h_neq' : A.val ≠ B.val := by
     simp [h_neq]
@@ -256,8 +254,7 @@ instance DirectSumDecompLE : PartialOrder (DirectSumDecomposition M) where
     intro I J h_J_le_I h_I_le_J
     have h_final_left : ∀ N ∈ J, N ∈ I := by
       intro N
-      by_contra h_neg
-      push_neg at h_neg
+      by_contra! h_neg
       rcases h_neg with ⟨h_N_in_J, h_N_not_in_I⟩
       let N' : J := ⟨N, h_N_in_J⟩
       have h_A : ∃ A : I, N ≤ A.val := by
