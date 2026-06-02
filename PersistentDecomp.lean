@@ -3,7 +3,8 @@ module
 public import PersistentDecomp.BumpFunctor
 public import PersistentDecomp.DirectSumDecomposition
 public import PersistentDecomp.DirectSumDecompositionDual
-public import PersistentDecomp.EndoRingIsLocal
+public import PersistentDecomp.EndRingIsLocal
+public import PersistentDecomp.Mathlib.CategoryTheory.EndRing.Fitting
 public import PersistentDecomp.Mathlib.Algebra.DirectSum.Basic
 public import PersistentDecomp.Mathlib.Algebra.Module.Submodule.Map
 public import PersistentDecomp.Mathlib.Data.DFinsupp.BigOperators
