@@ -30,12 +30,12 @@ of types. -/
 noncomputable def ToTypeCat : DirectSumDecomposition M ⥤ Type where
   obj D := D
   -- Define the maps f_{IJ} induced by "J refines I"
-  map {J I} f := RefinementMap I J (leOfHom f)
+  map {J I} f := ↾RefinementMap I J (leOfHom f)
   map_comp {I J L} f g := by
     have h₁ := leOfHom f
     have h₂ := leOfHom g
-    ext N : 2
-    simpa using RefinmentMapFunctorial .. --THANK YOU FOR .. YAEL!!
+    ext N : 3
+    simpa using RefinmentMapFunctorial ..
 
 /-- This is possibly useful to make things a bit cleaner so let's keep it for now but possibly
 remove it later -/

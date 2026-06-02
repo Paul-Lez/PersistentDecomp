@@ -30,7 +30,7 @@ lemma IsInternal.eq_zero_of_subsingleton_preimage (hA : IsInternal A) {κ : Type
   have hf₀ := congr((decomposeAddEquiv A $hf₀ (g k)).1)
   simp only [map_sum, decomposeAddEquiv_apply,
     decompose_zero, zero_apply, ZeroMemClass.coe_zero] at hf₀
-  rw [DFinsupp.finset_sum_apply, Finset.sum_eq_single k] at hf₀
+  rw [DFinsupp.finsetSum_apply, Finset.sum_eq_single k] at hf₀
   · simpa [this] using hf₀
   · intros b hb hbk
     simp_rw [this, DirectSum.of_apply, dif_neg (hg.ne hb hk hbk)]
