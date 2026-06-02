@@ -20,7 +20,7 @@ The code is contained in the directory `PH_formalisation`. It contains the follo
 In addition, we also have the following files:
 * `DirectSumDecomposition`: defines direct sum decompositions of persistence modules and proves basic facts about them.
 * `DirectSumDecompositionDual`: provides the same structures, equipped with the dual order.
-* `EndoRingIsLocal`: proves that indecomposable modules have local endomorphism rings.
+* `EndRingIsLocal`: proves that indecomposable modules have local endomorphism rings.
 * `MaximalDecompExists`: proves that pointwise finite-dimensional persistence modules decompose as a direct sum of indecomposable modules.
 * `BumpFunctor`: contains code generalising the notion of interval modules to other categories.
 
