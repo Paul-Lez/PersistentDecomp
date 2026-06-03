@@ -83,18 +83,20 @@ lemma mem_of_mutual_refinement (P Q : Partition s) (hQP : Q ≤ P) (hPQ : P ≤ 
 /-- The functor sending a partition to its type of parts, with maps induced by refinement. -/
 noncomputable def toTypeCat : Partition s ⥤ Type _ where
   obj P := P
-  map {P Q} f := refinementMap Q P (leOfHom f)
+  map {P Q} f := ↾(refinementMap Q P (leOfHom f))
   map_comp {P Q R} f g := by
-    ext a : 2
+    apply TypeCat.homEquiv.injective
+    funext a
     simpa using refinementMap_refinementMap R Q P (leOfHom g) (leOfHom f)
       (leOfHom (f ≫ g)) a
 
 /-- The restriction of `Partition.toTypeCat` to a set of partitions. -/
 noncomputable def toTypeCatOn (T : Set (Partition s)) : T ⥤ Type _ where
   obj P := P.val
-  map {P Q} f := refinementMap Q.val P.val (leOfHom f)
+  map {P Q} f := ↾(refinementMap Q.val P.val (leOfHom f))
   map_comp {P Q R} f g := by
-    ext a : 2
+    apply TypeCat.homEquiv.injective
+    funext a
     simpa using refinementMap_refinementMap R.val Q.val P.val (leOfHom g) (leOfHom f)
       (leOfHom (f ≫ g)) a
 

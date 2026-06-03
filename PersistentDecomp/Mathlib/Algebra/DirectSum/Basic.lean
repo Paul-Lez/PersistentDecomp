@@ -82,7 +82,7 @@ lemma IsInternal.decomposition_support_linearIndependent (hA : IsInternal A) [De
   change ((∑ j : {i : ι // i ∈ (hA.decomposition b).support},
           DirectSum.of (fun i : ι => A i) j.val
             (g j • (hA.decomposition b j.val))) : Π₀ i, A i) i.val = 0 at hcoord
-  rw [DFinsupp.finset_sum_apply, Finset.sum_eq_single i, of_eq_same, smul_eq_zero] at hcoord
+  rw [DFinsupp.finsetSum_apply, Finset.sum_eq_single i, of_eq_same, smul_eq_zero] at hcoord
   · apply hcoord.resolve_right
     exact (DFinsupp.mem_support_toFun (hA.decomposition b) i.val).mp i.prop
   · intro j _ hji
@@ -145,7 +145,7 @@ lemma coarsen_apply_eq_zero_of_forall_support_ne [∀ k (x : B k), Decidable (x 
   rw [← DirectSum.sum_support_of x, map_sum]
   change ((∑ k ∈ x.support,
     coarsen f h (DirectSum.of (fun k : κ => B k) k (x k))) : Π₀ i : ι, A i) i = 0
-  rw [DFinsupp.finset_sum_apply]
+  rw [DFinsupp.finsetSum_apply]
   refine Finset.sum_eq_zero ?_
   intro k hk
   rw [← DirectSum.lof_eq_of (R := R), coarsen_lof, DirectSum.lof_eq_of (R := R),
@@ -184,7 +184,7 @@ lemma coarsen_apply_coe [∀ k (x : B k), Decidable (x ≠ 0)]
   change (((∑ k ∈ x.support,
       coarsen (A := A) (B := B) f h
         (DirectSum.of (fun k : κ => B k) k (x k))) : Π₀ i : ι, A i) i : V) = _
-  rw [DFinsupp.finset_sum_apply]
+  rw [DFinsupp.finsetSum_apply]
   change ((A i).subtype
       (∑ k ∈ x.support, ((coarsen (A := A) (B := B) f h)
         ((DirectSum.of (fun k : κ => B k) k) (x k))) i)) = _

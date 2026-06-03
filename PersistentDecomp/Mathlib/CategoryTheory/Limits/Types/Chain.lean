@@ -34,8 +34,8 @@ lemma limitProj_ne_of_le {J I : T} (hJI : J ≤ I) {x y : limit F}
     limit.π F J x ≠ limit.π F J y := by
   intro h
   apply hne
-  have hmapx := Types.Limit.w_apply (F := F) (x := x) (homOfLE hJI)
-  have hmapy := Types.Limit.w_apply (F := F) (x := y) (homOfLE hJI)
+  have hmapx := limit.w_apply F (homOfLE hJI) x
+  have hmapy := limit.w_apply F (homOfLE hJI) y
   change limit.π F I x = limit.π F I y
   change limit.π F J x = limit.π F J y at h
   rw [← hmapx, ← hmapy, h]
@@ -90,8 +90,8 @@ lemma exists_limitProj_injOn_finset (hT : IsChain LE.le T) (hTne : T.Nonempty)
       · rcases hy with rfl | hy
         · exact False.elim ((hsep x hx) hxy)
         · apply hJ₀ hx hy
-          have hmapx := Types.Limit.w_apply (F := F) (x := x) (homOfLE hJJ₀)
-          have hmapy := Types.Limit.w_apply (F := F) (x := y) (homOfLE hJJ₀)
+          have hmapx := limit.w_apply F (homOfLE hJJ₀) x
+          have hmapy := limit.w_apply F (homOfLE hJJ₀) y
           change limit.π F J₀ x = limit.π F J₀ y
           change limit.π F J x = limit.π F J y at hxy
           rw [← hmapx, ← hmapy, hxy]
