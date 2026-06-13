@@ -136,7 +136,7 @@ def Indecomposable' (N : PersistenceSubmodule M) : Prop :=
 
 section LatticeRefinements
 
-variable {α : Type*} [CompleteLattice α] [DistribLattice α] [BoundedOrder α]
+variable {α : Type*} [CompleteLattice α]
 
 structure refinement (S : Set α) where
   carrier : Set (Set α)

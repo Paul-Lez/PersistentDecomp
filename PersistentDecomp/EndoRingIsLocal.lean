@@ -223,10 +223,6 @@ lemma OneDef : (1 : EndRing C R F) = (𝟙 F) := by
   rfl
 
 @[simp]
-lemma ZeroEndAppIsZero : (fun _ => 0 : ∀ X : C, F.obj X →ₗ[R] F.obj X) = 0 := by
-  rfl
-
-@[simp]
 lemma ZeroEndAppIsZeroAtX (X : C) : (ZeroEndomorphism C R F).app X = 0 := by
   rfl
 

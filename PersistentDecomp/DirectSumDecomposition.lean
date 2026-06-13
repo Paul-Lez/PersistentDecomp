@@ -182,7 +182,6 @@ instance DirectSumDecompLE : PartialOrder (DirectSumDecomposition M) where
       let B := f N'.prop
       have h_B₁ : N = _ := hf' N'.prop
       have h_B₂ := hf N'.prop
-      simp only at h_B₁
       have h_mem : A.val ∈ B := by
         by_contra h_A_not_mem
         have h_aux : Disjoint A.val (sSup B) := by
