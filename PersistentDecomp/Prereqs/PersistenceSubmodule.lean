@@ -28,7 +28,7 @@ namespace PersistenceSubmodule
 
 instance : DFunLike (PersistenceSubmodule M) C fun c ↦ Submodule K (M.obj c) where
   coe := toFun
-  coe_injective' N₁ N₂ := by cases N₁; cases N₂; congr!
+  coe_injective N₁ N₂ := by cases N₁; cases N₂; congr!
 
 /-- The inclusion of the submodules `N c` and `N d` is compatible with the "transition" maps of the
 functor `M`, i.e if we have `f : c ⟶ d` then the image of `N c` by `M f` lies in the submodule

@@ -146,7 +146,7 @@ structure refinement (S : Set α) where
 
 instance (S : Set α) : SetLike (refinement S) (Set α) where
   coe := refinement.carrier
-  coe_injective' D₁ := by cases D₁; congr!
+  coe_injective D₁ := by cases D₁; congr!
 
 def decomposition_of_refinement {S : Set α} (R : refinement S) : Set α := ⋃ D ∈ R, D
 

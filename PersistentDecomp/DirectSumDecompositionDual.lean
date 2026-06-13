@@ -39,7 +39,7 @@ namespace DirectSumDecomposition
 
 instance : SetLike (DirectSumDecomposition M) (PersistenceSubmodule M) where
   coe := carrier
-  coe_injective' D₁ D₂ := by cases D₁; congr!
+  coe_injective D₁ D₂ := by cases D₁; congr!
 
 protected lemma sSupIndep (D : DirectSumDecomposition M) : sSupIndep (SetLike.coe D) := D.sSupIndep'
 
