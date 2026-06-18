@@ -7,7 +7,7 @@ public import PersistentDecomp.Mathlib.Order.Interval.Basic
 /-!
 # Bump Functors and Interval Modules
 
-In this file we the notion of a "bump functor", i.e. a functor `C ⥤ D` that
+In this file we define the notion of a "bump functor", i.e. a functor `C ⥤ D` that
 sends a subset `I` of `C` to some constant `d : D` and the complement of `I` to zero.
 We then use this to construct interval modules.
 -/
@@ -20,36 +20,38 @@ universe u v
 variable {A : Type u} [Category.{v} A]
 variable {C : Type*} [Category C] (e : A) {S : Set C} {z : A} (hz : IsZero z)
 
-/-- A subset `S ⊆ C` is good if for any pairs of morphisms `(u ⟶ v)` and `(v ⟶ w)` such that
+/-- A subset `S ⊆ C` is convex if for any pairs of morphisms `(u ⟶ v)` and `(v ⟶ w)` such that
 `u, w ∈ S`, we must have `v ∈ S`. -/
-def good (S : Set C) : Prop := ∀ u v w : C, u ∈ S → w ∈ S → (u ⟶ v) → (v ⟶ w) → v ∈ S
+def IsConvex (S : Set C) : Prop :=
+  ∀ u v w : C, u ∈ S → w ∈ S → (u ⟶ v) → (v ⟶ w) → v ∈ S
 
 section Interval
 
-/-- All intervals are good subsets in the categorical sense. -/
-lemma Interval.isGood {α : Type*} [PartialOrder α] (I : Interval α) : good (C := α) I :=
+/-- All intervals are convex subsets in the categorical sense. -/
+lemma Interval.isConvex {α : Type*} [PartialOrder α] (I : Interval α) : IsConvex (C := α) I :=
   fun _u _v _w hu hw f g ↦ I.ordConnected.out hu hw ⟨leOfHom f, leOfHom g⟩
 
 end Interval
 
-variable (hS : good S)
+variable (hS : IsConvex S)
 
 open scoped Classical in
 /-- Let `C` be an abelian category and `D` some arbitrary category. Say `S` is a subset of
 `D`, and `e` some arbitrary element of `C`. The **bump functor on `S` with value `e`** is the
 functor that sends elements of `S` to `e` and elements outside `s` to the zero element of `C`. -/
 @[simps]
-noncomputable def Bump : C ⥤ A where
+noncomputable def bump : C ⥤ A where
   obj x := if x ∈ S then e else z
   map {x y} _ :=
     if hx : x ∈ S then
       -- here we have to be a bit careful: we want the morphism to be the zero map, but this goes
-      -- from `Bump x` to `z` so we need to compose with the "identity map" `z ⟶ Bump y`, i.e. we
+      -- from `bump x` to `z` so we need to compose with the "identity map" `z ⟶ bump y`, i.e. we
       -- need to use `eqToHom`, which converts equalities of objects to morphisms
       if hy : y ∈ S then eqToHom (by simp only [hx, ↓reduceIte, hy]) else
         hz.from_ _ ≫ eqToHom (by simp only [↓reduceIte, hy])
       else eqToHom (by simp only [hx, ↓reduceIte]) ≫ hz.to_ _
   map_comp {u v w} f g := by
+    -- TODO: golf using split_ifs.
     --The proof is a case bash. We start with the case that u lies in S
     by_cases hu : u ∈ S
     · simp only [hu, ↓reduceDIte]
@@ -66,7 +68,7 @@ noncomputable def Bump : C ⥤ A where
           apply hz.from_eq
       · --Next assume v doesn't lie in S
         by_cases hw : w ∈ S
-        · --The case w ∈ S is empty since S is a "good" subset
+        · -- The case `w ∈ S` is empty by convexity.
           exfalso
           apply hv (hS u v w hu hw f g)
         · -- If w ∈ S then again we're mapping into the zero element of the target category and
@@ -85,25 +87,48 @@ noncomputable def Bump : C ⥤ A where
       rw [eqToHom_comp_iff]
       apply hz.to_eq
 
-/-TODO: add functoriality of this construction: should send inclusion of set to
-"inclusion" of functors.
-Maybe we will need to show that `Bump` defines a functor from the category of subsets of
-`D` (wrt inclusion) to the category of functors `D ⥤ C` ?
-We can also show functoriality in the choice of the element `e`.-/
-
 section API
 
-lemma Bump_apply_of_mem {x : C} (hx : x ∈ S) :
-  (Bump e hz hS).obj x = e := by
-  simp only [Bump_obj, hx, ↓reduceIte]
+lemma bump_obj_of_mem {x : C} (hx : x ∈ S) : (bump e hz hS).obj x = e := by
+  simp [bump_obj, hx, ↓reduceIte]
 
-lemma Bump_apply_of_not_mem {x : C} (hx : x ∉ S) :
-  (Bump e hz hS).obj x = z := by
-  simp only [Bump_obj, hx, ↓reduceIte]
+lemma bump_obj_of_notMem {x : C} (hx : x ∉ S) :(bump e hz hS).obj x = z := by
+  simp [bump_obj, hx, ↓reduceIte]
 
-lemma IsZero_Bump_apply_of_not_mem {x : C} (hx : x ∉ S) :
-  IsZero ((Bump e hz hS).obj x) := by
-  simpa only [Bump_obj, hx, ↓reduceIte]
+lemma isZero_bump_obj_of_notMem {x : C} (hx : x ∉ S) : IsZero ((bump e hz hS).obj x) := by
+  simpa [bump_obj, hx, ↓reduceIte]
+
+noncomputable def zeroThrough (hz : IsZero z) (X Y : A) : X ⟶ Y :=
+  hz.from_ X ≫ hz.to_ Y
+
+lemma comp_zeroThrough (hz : IsZero z) {X X' Y : A} (f : X ⟶ X') :
+    f ≫ zeroThrough hz X' Y = zeroThrough hz X Y := by
+  simp [zeroThrough, ← Category.assoc, hz.eq_of_tgt (f ≫ hz.from_ X') (hz.from_ X)]
+
+lemma zeroThrough_comp (hz : IsZero z) {X Y Y' : A} (f : Y ⟶ Y') :
+    zeroThrough hz X Y ≫ f = zeroThrough hz X Y' := by
+  simp [zeroThrough, Category.assoc, hz.eq_of_src (hz.to_ Y ≫ f) (hz.to_ Y')]
+
+variable {T : Set C} (hT : IsConvex T)
+
+/-- The natural transformation between two bump functors whose components factor through the
+chosen zero object. -/
+noncomputable def bumpZero : bump e hz hS ⟶ bump e hz hT where
+  app x := zeroThrough hz _ _
+  naturality {x y} f := by
+    rw [comp_zeroThrough, zeroThrough_comp]
+
+@[simp]
+lemma bumpZero_app (x : C) :
+    (bumpZero e hz hS hT).app x =
+      zeroThrough hz ((bump e hz hS).obj x) ((bump e hz hT).obj x) :=
+  rfl
+
+lemma bumpZero_comp {U : Set C} (hU : IsConvex U) :
+    bumpZero e hz hS hT ≫ bumpZero e hz hT hU = bumpZero e hz hS hU := by
+  ext x
+  simp only [NatTrans.comp_app, bumpZero_app]
+  rw [zeroThrough_comp]
 
 end API
 
@@ -113,32 +138,50 @@ variable (F : Type) [DivisionRing F]
 
 /-- Definition of the action of an interval module on objects of `(ℝ, ≤)`. For an interval
 `I = [a,b]`, `x` is mapped to the `F`-module F if `x` is in `I`, and to `{0}` otherwise. -/
-noncomputable def IntervalModuleObject (I : Interval ℝ) : ℝ ⥤ ModuleCat F :=
-  Bump (ModuleCat.of F F) (isZero_zero _) I.isGood
+noncomputable def intervalModuleObject (I : Interval ℝ) : ℝ ⥤ ModuleCat F :=
+  bump (ModuleCat.of F F) (isZero_zero _) I.isConvex
 
 -- Set up custom notation so we can write the `F`-persistent module of an interval `I` as `F[I]`
-notation3:max F"["I"]" => IntervalModuleObject F I
+notation3:max F"["I"]" => intervalModuleObject F I
 
 /-- The interval module of the empty interval is the zero object in the category of persistent
 modules. -/
-lemma IsZero_IntervalModuleObject'_zero : IsZero (IntervalModuleObject F (⊥ : Interval ℝ)) := by
-  sorry
+lemma isZero_intervalModuleObject_bot : IsZero (intervalModuleObject F (⊥ : Interval ℝ)) := by
+  apply Functor.isZero
+  intro x
+  apply isZero_bump_obj_of_notMem
+  simp
 
 
-/-- The map of interval modules induced by an inclusion of intervals. To construct this we
-should first construct the analogous version for bump functors. -/
-noncomputable def IntervalModuleMorphism {I J : Interval ℝ} (hIJ : I ≤ J) : F[I] ⟶ F[J] := by
-  sorry
+/-- The identity map for equal intervals, and the zero-through-zero-object map otherwise. -/
+noncomputable def intervalModuleMorphism {I J : Interval ℝ} (hIJ : I ≤ J) : F[I] ⟶ F[J] := by
+  by_cases h : I = J
+  · subst h
+    exact 𝟙 _
+  · exact bumpZero (ModuleCat.of F F) (isZero_zero _) I.isConvex J.isConvex
 
 /-- The construction above preserves compositions. -/
-noncomputable def IntervalModuleMorphism_comp {I J K : Interval ℝ} (hIJ : I ≤ J)
-  (hJK : J ≤ K) : IntervalModuleMorphism F hIJ ≫ IntervalModuleMorphism F hJK =
-    IntervalModuleMorphism F (le_trans hIJ hJK) := by
-  sorry
+lemma intervalModuleMorphism_comp {I J K : Interval ℝ} (hIJ : I ≤ J)
+  (hJK : J ≤ K) : intervalModuleMorphism F hIJ ≫ intervalModuleMorphism F hJK =
+    intervalModuleMorphism F (le_trans hIJ hJK) := by
+  -- TODO: gold using split_ifs
+  by_cases hIK : I = K
+  · subst hIK
+    have hIJ_eq : I = J := le_antisymm hIJ hJK
+    subst hIJ_eq
+    simp [intervalModuleMorphism]
+  · by_cases hIJ_eq : I = J
+    · subst hIJ_eq
+      simp [intervalModuleMorphism, hIK]
+    · by_cases hJK_eq : J = K
+      · subst hJK_eq
+        simp [intervalModuleMorphism, hIK]
+      · simpa [intervalModuleMorphism, hIK, hIJ_eq, hJK_eq] using
+          (bumpZero_comp (ModuleCat.of F F) (isZero_zero _) I.isConvex J.isConvex K.isConvex)
 
 /-- The construction above sends the "identity" inclusion to the identity morphism. -/
-lemma IntervalModuleMorphism_identity (I : Interval ℝ) :
-  IntervalModuleMorphism F (le_refl I) = 𝟙 _ := by
-  sorry
+lemma intervalModuleMorphism_id (I : Interval ℝ) :
+    intervalModuleMorphism F (le_refl I) = 𝟙 _ := by
+  simp [intervalModuleMorphism]
 
 end IntervalModule
