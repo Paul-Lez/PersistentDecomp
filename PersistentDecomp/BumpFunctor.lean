@@ -127,18 +127,18 @@ lemma IsZero_IntervalModuleObject'_zero : IsZero (IntervalModuleObject F (⊥ : 
 
 /-- The map of interval modules induced by an inclusion of intervals. To construct this we
 should first construct the analogous version for bump functors. -/
-noncomputable def IntervalModuleMorphism {I J : Interval ℝ} (hIJ : I ≤ J) : F[I] ⟶ F[J] := by
+noncomputable def intervalModuleMorphism {I J : Interval ℝ} (hIJ : I ≤ J) : F[I] ⟶ F[J] := by
   sorry
 
 /-- The construction above preserves compositions. -/
-noncomputable def IntervalModuleMorphism_comp {I J K : Interval ℝ} (hIJ : I ≤ J)
-  (hJK : J ≤ K) : IntervalModuleMorphism F hIJ ≫ IntervalModuleMorphism F hJK =
-    IntervalModuleMorphism F (le_trans hIJ hJK) := by
+lemma intervalModuleMorphism_comp {I J K : Interval ℝ} (hIJ : I ≤ J) (hJK : J ≤ K) :
+   intervalModuleMorphism F hIJ ≫ intervalModuleMorphism F hJK =
+    intervalModuleMorphism F (le_trans hIJ hJK) := by
   sorry
 
 /-- The construction above sends the "identity" inclusion to the identity morphism. -/
-lemma IntervalModuleMorphism_identity (I : Interval ℝ) :
-  IntervalModuleMorphism F (le_refl I) = 𝟙 _ := by
+lemma intervalModuleMorphism_identity (I : Interval ℝ) :
+  intervalModuleMorphism F (le_refl I) = 𝟙 _ := by
   sorry
 
 end IntervalModule
