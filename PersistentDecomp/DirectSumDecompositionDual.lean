@@ -334,7 +334,7 @@ lemma Indecomposable_of_mem_Min_Direct_sum_decomposition
     use newD
     apply refinement_lt_of_exists_ne_singleton
     use x ⊔ y, hN
-    simp only [B, if_true]
+    simp only [B, ite_true]
     intro h
     --This should be easy
     sorry

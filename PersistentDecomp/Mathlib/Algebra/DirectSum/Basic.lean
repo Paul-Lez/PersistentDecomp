@@ -33,7 +33,7 @@ lemma IsInternal.eq_zero_of_subsingleton_preimage (hA : IsInternal A) {κ : Type
   rw [DFinsupp.finsetSum_apply, Finset.sum_eq_single k] at hf₀
   · simpa [this] using hf₀
   · intros b hb hbk
-    simp_rw [this, DirectSum.of_apply, dif_neg (hg.ne hb hk hbk)]
+    simp_rw [this, DirectSum.of_apply, dite_eq_right (hg.ne hb hk hbk)]
   · simp [hk]
 
 end DirectSum
