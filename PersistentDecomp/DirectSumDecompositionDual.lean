@@ -95,7 +95,7 @@ lemma RefinementMapSurj' (I : DirectSumDecomposition M) (J : DirectSumDecomposit
     simp_rw [le_antisymm_iff, sSup_le_iff]
     constructor
     · intro b h_mem
-      simp only [exists_and_right, Subtype.exists, exists_prop, Set.mem_setOf_eq, B] at h_mem
+      simp only [exists_and_right, Subtype.exists, exists_prop, Set.mem_ofPred_eq, B] at h_mem
       rcases h_mem with ⟨h₁, _⟩
       rcases h₁ with ⟨a, h_a, h_le⟩
       exact le_sSup_of_le h_a h_le
@@ -104,7 +104,7 @@ lemma RefinementMapSurj' (I : DirectSumDecomposition M) (J : DirectSumDecomposit
       choose f hf hf' using h
       refine ⟨f A.prop, ?_, by rw [← hf' A.prop]⟩
       intro α h_α
-      simp only [exists_and_right, Subtype.exists, exists_prop, Set.mem_setOf_eq, B]
+      simp only [exists_and_right, Subtype.exists, exists_prop, Set.mem_ofPred_eq, B]
       refine ⟨⟨A, A.prop, ?_⟩, hf A.prop h_α⟩
       rw [hf' A.prop]
       exact le_sSup h_α
@@ -114,7 +114,7 @@ lemma RefinementMapSurj' (I : DirectSumDecomposition M) (J : DirectSumDecomposit
     exact le_trans h_C.right (sSup_le_sSup h_C.left)
   have h_aux' : N₀.val ∉ B := by
     intro h_contra
-    simp only [exists_and_right, Subtype.exists, exists_prop, Set.mem_setOf_eq, SetLike.coe_mem,
+    simp only [exists_and_right, Subtype.exists, exists_prop, Set.mem_ofPred_eq, SetLike.coe_mem,
       and_true, B] at h_contra
     rcases h_contra with ⟨A, h₁, h₂⟩
     exact (h_not_le (⟨A, h₁⟩) h₂)

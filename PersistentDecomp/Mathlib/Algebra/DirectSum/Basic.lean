@@ -24,7 +24,7 @@ lemma IsInternal.eq_zero_of_subsingleton_preimage (hA : IsInternal A) {κ : Type
     (f : κ → M) (s : Finset κ) (hg : (s : Set κ).InjOn g) (hfg : ∀ k, f k ∈ A (g k))
     (hf₀ : ∑ k ∈ s, f k = 0) {k : κ} (hk : k ∈ s) : f k = 0 := by
   classical
-  letI := hA.chooseDecomposition
+  let := hA.chooseDecomposition
   have (k : κ) : decompose A (f k) = DirectSum.of (fun i ↦ A i) (g k) ⟨f k, hfg k⟩ :=
     (decompose A).symm.injective (by simp)
   have hf₀ := congr((decomposeAddEquiv A $hf₀ (g k)).1)
