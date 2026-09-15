@@ -1,7 +1,7 @@
 module
 
 public import Mathlib.Algebra.Category.ModuleCat.Basic
-public import Mathlib.Data.Real.Basic
+public import Mathlib.Basic.Real.Basic
 public import PersistentDecomp.Mathlib.Order.Interval.Basic
 
 /-!
