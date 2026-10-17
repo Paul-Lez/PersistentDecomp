@@ -145,7 +145,7 @@ instance : Preorder (DirectSumDecomposition M) where
         simp_rw [le_antisymm_iff, sSup_le_iff]
         constructor
         · intro a h_a
-          have h_aux'' : ∃ (c : C), a ∈ (f (h_sub c.prop)) := by aesop
+          have h_aux'' : ∃ c : C, a ∈ f (h_sub c.prop) := by simpa [A] using h_a
           rcases h_aux'' with ⟨c_a, h_ca⟩
           have h_le : a ≤ c_a := by
             rw [hf' (N := c_a) (h_sub c_a.2)]
@@ -198,9 +198,7 @@ instance DirectSumDecompLE : PartialOrder (DirectSumDecomposition M) where
         exact le_sSup h_mem
       have h_A_eq_N : A.val = N := by
         exact (le_antisymm h_A_le_N h_N_le_A)
-      have h_contra : N ∈ I := by
-        exact h_A_eq_N ▸ A.prop
-      aesop
+      exact h_N_not_in_I <| h_A_eq_N ▸ A.prop
     have h_final_right : ∀ N ∈ I, N ∈ J := by
       sorry
     aesop
